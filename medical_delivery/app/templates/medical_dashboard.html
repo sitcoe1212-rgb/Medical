@@ -1,0 +1,2051 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Store Admin Dashboard</title>
+    <!-- jsPDF for client-side PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #27ae60;
+            --accent: #e67e22;
+            --bg: #f4f7f6;
+            --white: #ffffff;
+            --text: #333;
+            --sidebar-width: 260px;
+            --topbar-h: 60px;
+            --bottom-nav-h: 64px;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg);
+            color: var(--text);
+        }
+
+        /* ============================================================
+           DESKTOP LAYOUT
+        ============================================================ */
+        #main-dashboard {
+            display: grid;
+            height: 100vh;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        /* ---- Sidebar (desktop) ---- */
+        .sidebar {
+            background: var(--primary);
+            color: white;
+            padding: 2rem 1rem;
+            grid-row: 1;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #455a64;
+            padding-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            padding: .85rem 1rem;
+            color: #bdc3c7;
+            text-decoration: none;
+            margin-bottom: .35rem;
+            border-radius: 6px;
+            transition: background .2s, color .2s;
+            font-size: .95rem;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: #34495e;
+            color: white;
+        }
+
+        .nav-link .nav-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        /* ---- Main content ---- */
+        .content {
+            padding: 2rem;
+            overflow-y: auto;
+            min-width: 0;
+        }
+
+        /* ============================================================
+           MOBILE TOP BAR + SLIDE-IN DRAWER
+        ============================================================ */
+        .mobile-topbar {
+            display: none;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            height: var(--topbar-h);
+            background: var(--primary);
+            color: white;
+            align-items: center;
+            padding: 0 1rem;
+            gap: .75rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .25);
+        }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            transition: background .2s;
+        }
+
+        .hamburger-btn:hover {
+            background: rgba(255, 255, 255, .12);
+        }
+
+        .hamburger-btn span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: white;
+            border-radius: 2px;
+            transition: transform .3s, opacity .3s;
+        }
+
+        .hamburger-btn.open span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+
+        .hamburger-btn.open span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger-btn.open span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 600;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .drawer-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            z-index: 300;
+            opacity: 0;
+            transition: opacity .3s;
+        }
+
+        .drawer-overlay.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        .mobile-drawer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 270px;
+            height: 100%;
+            background: var(--primary);
+            z-index: 400;
+            transform: translateX(-100%);
+            transition: transform .3s ease;
+            overflow-y: auto;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mobile-drawer.open {
+            transform: translateX(0);
+        }
+
+        .drawer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #455a64;
+        }
+
+        .drawer-store-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1.3;
+        }
+
+        .drawer-close {
+            background: none;
+            border: none;
+            color: #bdc3c7;
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .drawer-close:hover {
+            background: rgba(255, 255, 255, .1);
+            color: white;
+        }
+
+        .drawer-nav-link {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            padding: .9rem 1rem;
+            color: #bdc3c7;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: .3rem;
+            font-size: .95rem;
+            transition: background .2s, color .2s;
+        }
+
+        .drawer-nav-link:hover,
+        .drawer-nav-link.active {
+            background: #34495e;
+            color: white;
+        }
+
+        .drawer-nav-link .nav-icon {
+            font-size: 1.15rem;
+        }
+
+        .drawer-logout {
+            margin-top: auto;
+            padding-top: 1rem;
+        }
+
+        /* ============================================================
+           BOTTOM NAV (mobile)
+        ============================================================ */
+        .bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--bottom-nav-h);
+            background: var(--primary);
+            z-index: 200;
+            border-top: 1px solid #34495e;
+            align-items: center;
+            justify-content: space-around;
+            box-shadow: 0 -2px 12px rgba(0, 0, 0, .2);
+        }
+
+        .bottom-nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            color: #bdc3c7;
+            text-decoration: none;
+            font-size: .65rem;
+            font-weight: 600;
+            letter-spacing: .02em;
+            padding: 6px 4px;
+            border-radius: 8px;
+            transition: color .2s, background .2s;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .bottom-nav-item .bnav-icon {
+            font-size: 1.3rem;
+        }
+
+        .bottom-nav-item.active {
+            color: #4ade80;
+        }
+
+        .bottom-nav-item.active .bnav-icon {
+            filter: drop-shadow(0 0 4px rgba(74, 222, 128, .5));
+        }
+
+        /* ============================================================
+           CONTENT SECTIONS
+        ============================================================ */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .05);
+            margin-bottom: 2rem;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            min-width: 700px;
+        }
+
+        th,
+        td {
+            padding: .85rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            font-size: .9rem;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            font-size: .82rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #666;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: .35rem .75rem;
+            border-radius: 20px;
+            font-size: .75rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .badge-new {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-accepted {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-out-delivery {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .payment-status-badge {
+            display: inline-block;
+            padding: .25rem .5rem;
+            border-radius: 4px;
+            font-size: .75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .payment-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .payment-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .payment-online {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .btn-action {
+            padding: .45rem .85rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 4px;
+            margin-bottom: 4px;
+            font-size: .8rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .btn-accept {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-reject {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-dispatch {
+            background: #2980b9;
+            color: white;
+        }
+
+        .btn-deliver {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-payment {
+            background: #16a34a;
+            color: white;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: .5rem;
+            font-weight: 600;
+            color: #555;
+            font-size: .9rem;
+        }
+
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            width: 100%;
+            padding: .7rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: .95rem;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .btn-save {
+            padding: .9rem 2rem;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .btn-save:hover {
+            background: #219a52;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: .25rem .5rem;
+            border-radius: 4px;
+            font-size: .8rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* ============================================================
+           ENHANCED BILL MODAL
+        ============================================================ */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, .6);
+            justify-content: center;
+            align-items: flex-start;
+            z-index: 1000;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 700px;
+            max-width: 100%;
+            margin: 1rem auto;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3);
+        }
+
+        /* Modal Tabs */
+        .modal-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .modal-tab {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: .9rem;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all .2s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .modal-tab.active {
+            color: var(--secondary);
+            border-bottom-color: var(--secondary);
+            background: white;
+        }
+
+        .modal-tab-content {
+            display: none;
+            padding: 1.5rem;
+        }
+
+        .modal-tab-content.active {
+            display: block;
+        }
+
+        /* Medicine Table */
+        .medicine-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.2fr 1.2fr 40px;
+            gap: .5rem;
+            padding: .5rem .75rem;
+            background: #f0fdf4;
+            border-radius: 6px;
+            font-size: .78rem;
+            font-weight: 700;
+            color: #166534;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin-bottom: .5rem;
+        }
+
+        .medicine-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.2fr 1.2fr 40px;
+            gap: .5rem;
+            align-items: center;
+            padding: .5rem .75rem;
+            background: #fafafa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            margin-bottom: .4rem;
+            transition: background .15s;
+        }
+
+        .medicine-row:hover {
+            background: #f0fdf4;
+            border-color: #86efac;
+        }
+
+        .medicine-row input {
+            width: 100%;
+            padding: .5rem .6rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: .88rem;
+        }
+
+        .medicine-row input:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .medicine-row .subtotal-display {
+            font-weight: 700;
+            color: #16a34a;
+            font-size: .9rem;
+            text-align: right;
+        }
+
+        .btn-remove-med {
+            width: 28px;
+            height: 28px;
+            background: #fee2e2;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: .9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .2s;
+            flex-shrink: 0;
+        }
+
+        .btn-remove-med:hover {
+            background: #fca5a5;
+        }
+
+        .btn-add-medicine {
+            width: 100%;
+            padding: .75rem;
+            border: 2px dashed #86efac;
+            background: #f0fdf4;
+            color: #16a34a;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .9rem;
+            font-weight: 600;
+            transition: all .2s;
+            margin-top: .5rem;
+        }
+
+        .btn-add-medicine:hover {
+            background: #dcfce7;
+            border-color: #4ade80;
+        }
+
+        /* Summary bar */
+        .bill-summary {
+            background: linear-gradient(135deg, #1a3a2a, #2c5f3f);
+            color: white;
+            padding: 1.25rem 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .bill-summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: .3rem 0;
+            font-size: .92rem;
+        }
+
+        .bill-summary-row.total-row {
+            border-top: 1px solid rgba(255, 255, 255, .3);
+            margin-top: .5rem;
+            padding-top: .75rem;
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        /* ---- RECEIPT PREVIEW (Tab 2) ---- */
+        #receipt-preview {
+            font-family: 'Courier New', monospace;
+            background: #fffef0;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-size: .82rem;
+            line-height: 1.6;
+            color: #222;
+        }
+
+        #receipt-preview .receipt-header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        #receipt-preview .receipt-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        #receipt-preview .receipt-header p {
+            margin: 2px 0;
+            font-size: .78rem;
+            color: #555;
+        }
+
+        #receipt-preview .receipt-divider {
+            border: none;
+            border-top: 1px dashed #aaa;
+            margin: .75rem 0;
+        }
+
+        #receipt-preview .receipt-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #receipt-preview .receipt-table th,
+        #receipt-preview .receipt-table td {
+            padding: .25rem .4rem;
+            text-align: left;
+            font-size: .8rem;
+            border: none;
+            background: none;
+        }
+
+        #receipt-preview .receipt-table th {
+            font-weight: 700;
+            border-bottom: 1px solid #ccc;
+        }
+
+        #receipt-preview .receipt-table .amount-col {
+            text-align: 95%;
+        }
+
+        #receipt-preview .receipt-total {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: .95rem;
+            margin-top: .5rem;
+            padding-top: .5rem;
+            border-top: 1px dashed #aaa;
+        }
+
+        #receipt-preview .receipt-footer {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: .75rem;
+            color: #888;
+        }
+
+        /* Action buttons row */
+        .modal-actions {
+            display: flex;
+            gap: .75rem;
+            flex-wrap: wrap;
+            padding: 1.25rem 1.5rem;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .btn-modal-action {
+            flex: 1;
+            min-width: 120px;
+            padding: .85rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .9rem;
+            font-weight: 700;
+            transition: all .2s;
+        }
+
+        .btn-process {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-process:hover {
+            background: #219a52;
+        }
+
+        .btn-download {
+            background: #2980b9;
+            color: white;
+        }
+
+        .btn-download:hover {
+            background: #2471a3;
+        }
+
+        .btn-send-email {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .btn-send-email:hover {
+            background: #7c3aed;
+        }
+
+        .btn-cancel {
+            background: white;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+        }
+
+        .btn-cancel:hover {
+            background: #f8f9fa;
+        }
+
+        /* Email status toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: .9rem;
+            z-index: 9999;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all .3s ease;
+            max-width: 340px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-success {
+            background: #16a34a;
+            color: white;
+        }
+
+        .toast-error {
+            background: #dc2626;
+            color: white;
+        }
+
+        .toast-info {
+            background: #2563eb;
+            color: white;
+        }
+
+        /* Spinner */
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, .4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ============================================================
+           MOBILE RESPONSIVE  ≤ 767px
+        ============================================================ */
+        @media (max-width: 767px) {
+            .sidebar {
+                display: none;
+            }
+
+            .mobile-topbar {
+                display: flex;
+            }
+
+            .bottom-nav {
+                display: flex;
+            }
+
+            #main-dashboard {
+                grid-template-columns: 1fr;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .content {
+                padding: 1rem;
+                padding-bottom: calc(var(--bottom-nav-h) + 1rem);
+            }
+
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width {
+                grid-column: span 1;
+            }
+
+            .header h1 {
+                font-size: 1.2rem;
+            }
+
+            .card {
+                padding: 1rem;
+                border-radius: 8px;
+            }
+
+            table {
+                min-width: 600px;
+            }
+
+            th,
+            td {
+                padding: .65rem .75rem;
+                font-size: .82rem;
+            }
+
+            .medicine-header,
+            .medicine-row {
+                grid-template-columns: 1.8fr .7fr 1fr 1fr 32px;
+                gap: .3rem;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
+
+            .btn-modal-action {
+                min-width: unset;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .modal-content {
+                padding: 0;
+            }
+
+            .medicine-header {
+                display: none;
+            }
+
+            .medicine-row {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto auto;
+            }
+
+            .medicine-row input:first-child {
+                grid-column: span 2;
+            }
+
+            .medicine-row .subtotal-display {
+                grid-column: 1;
+                align-self: center;
+            }
+
+            .btn-remove-med {
+                grid-column: 2;
+                justify-self: end;
+            }
+        }
+
+        /* .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            padding-top: 50px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-content {
+            display: block;
+            margin: auto;
+            max-width: 70%;
+            max-height: 80%;
+            border-radius: 10px;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: white;
+            font-size: 35px;
+            cursor: pointer;
+        } */
+    </style>
+</head>
+
+<body>
+
+    <!-- ================================================
+         MOBILE TOP BAR
+    ================================================ -->
+    <div class="mobile-topbar" id="mobile-topbar">
+        <button class="hamburger-btn" id="hamburger-btn" onclick="toggleDrawer()" aria-label="Open menu">
+            <span></span><span></span><span></span>
+        </button>
+        <span class="topbar-title" id="topbar-title">Today's Orders</span>
+    </div>
+
+    <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+
+    <!-- ================================================
+         MOBILE SLIDE-IN DRAWER
+    ================================================ -->
+    <div class="mobile-drawer" id="mobile-drawer">
+        <div class="drawer-header">
+            <span class="drawer-store-name" id="display-store-name-drawer">
+                {{ store.name if store else current_user.full_name or 'Medical Store' }}
+            </span>
+            <button class="drawer-close" onclick="closeDrawer()">✕</button>
+        </div>
+
+        <a href="#" class="drawer-nav-link active" id="drawer-orders"
+            onclick="showSection('orders', event); closeDrawer(); setTopbarTitle('Today\'s Orders')">
+            <span class="nav-icon"></span> Today's Orders
+        </a>
+        <a href="#" class="drawer-nav-link" id="drawer-profile"
+            onclick="showSection('profile', event); closeDrawer(); setTopbarTitle('Edit Store Profile')">
+            <span class="nav-icon"></span> Edit Store Profile
+        </a>
+        <a href="#" class="drawer-nav-link" id="drawer-view-profile"
+            onclick="showSection('view-profile', event); closeDrawer(); setTopbarTitle('Store Information')">
+            <span class="nav-icon"></span> View Store Info
+        </a>
+
+        <div class="drawer-logout">
+            <a href="#" class="drawer-nav-link" style="color:#e74c3c;" onclick="logout()">
+                <span class="nav-icon"></span> Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- ================================================
+         MAIN DASHBOARD GRID
+    ================================================ -->
+    <div id="main-dashboard">
+
+        <!-- Desktop Sidebar -->
+        <div class="sidebar">
+            <h2 id="display-store-name">{{ store.name if store else current_user.full_name or 'Medical Store' }}</h2>
+            <a href="#" class="nav-link active" onclick="showSection('orders', event)">
+                <span class="nav-icon"></span> Today's Orders
+            </a>
+            <a href="#" class="nav-link" onclick="showSection('profile', event)">
+                <span class="nav-icon"></span> Edit Store Profile
+            </a>
+            <a href="#" class="nav-link" onclick="showSection('view-profile', event)">
+                <span class="nav-icon"></span> View Store Info
+            </a>
+            <a href="#" class="nav-link" onclick="logout()" style="margin-top: 200px; color: #e74c3c;">
+                <span class="nav-icon"></span> Logout
+            </a>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+
+            <!-- Orders Section -->
+            <div id="orders" class="section active">
+                <div class="header">
+                    <h1>Order Requests</h1>
+                    <span id="order-count" style="font-size:.9rem; color:#666;">Total Orders: {{ orders|length }}</span>
+                </div>
+                <div class="card">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Patient Name</th>
+                                    <th>Address</th>
+                                    <th>Prescription</th>
+                                    <th>Order Status</th>
+                                    <th>Payment Method</th>
+                                    <th>Payment Status</th>
+                                    <th>Total Amount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="order-list">
+                                {% for order in orders %}
+                                <tr>
+                                    <td>{{ order.user.full_name }}</td>
+                                    <td>{{ order.delivery_address[:50] }}{% if order.delivery_address|length > 50
+                                        %}...{% endif %}</td>
+                                    <td>
+                                        {% if order.prescription %}
+                                        {% set fname = order.prescription.file_path
+                                        .replace('\\', '/')
+                                        .replace('uploads/', '')
+                                        .replace('uploads', '')
+                                        .split('/')[-1] %}
+
+                                        <a href="#"
+                                            onclick="openImage('{{ url_for('uploaded_file', filename=fname) }}')">
+                                            View Prescription
+                                        </a>
+                                        {% else %}
+                                        No prescription
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if order.order_status == 'NEW' %}<span class="badge badge-new">New
+                                            Request</span>
+                                        {% elif order.order_status == 'ACCEPTED' %}<span
+                                            class="badge badge-accepted">Accepted</span>
+                                        {% elif order.order_status == 'REJECTED' %}<span
+                                            class="badge badge-rejected">Rejected</span>
+                                        {% elif order.order_status == 'OUT_FOR_DELIVERY' %}<span
+                                            class="badge badge-out-delivery">Out for Delivery</span>
+                                        {% elif order.order_status == 'DELIVERED' %}<span
+                                            class="badge badge-delivered">Delivered</span>
+                                        {% else %}<span class="badge">{{ order.order_status }}</span>{% endif %}
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="payment-status-badge {% if order.payment_method == 'ONLINE' %}payment-online{% else %}payment-pending{% endif %}">
+                                            {{ order.payment_method }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if order.payment_method == 'ONLINE' %}
+                                        {% if order.payment_status == 'SUCCESS' %}<span
+                                            class="payment-status-badge payment-success">✓ Paid Online</span>
+                                        {% elif order.payment_status == 'PENDING' %}<span
+                                            class="payment-status-badge payment-pending">⏳ Pending</span>
+                                        {% else %}<span class="payment-status-badge payment-pending">{{
+                                            order.payment_status }}</span>{% endif %}
+                                        {% else %}
+                                        {% if order.payment_status == 'SUCCESS' %}<span
+                                            class="payment-status-badge payment-success">✓ Collected</span>
+                                        {% else %}<span class="payment-status-badge payment-pending">⏳ Pending
+                                            COD</span>{% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td><strong>₹{{ "%.2f"|format(order.total_amount) }}</strong></td>
+                                    <td>
+                                        {% if order.order_status == 'NEW' %}
+                                        <button class="btn-action btn-accept" onclick="openBillModal(
+                                                    '{{ order.id }}',
+                                                    '{{ order.user.full_name }}',
+                                                    '{{ order.tracking_id }}',
+                                                    '{{ order.delivery_address | replace("'", "\\'") }}',
+                                                    '{{ order.user.email or '' }}',
+                                                    '{{ order.payment_method }}'
+                                                )">Accept</button>
+                                        <button class="btn-action btn-reject"
+                                            onclick="rejectOrder('{{ order.id }}')">Reject</button>
+                                        {% elif order.order_status in ['ACCEPTED', 'PREPARING'] %}
+                                        <button class="btn-action btn-dispatch"
+                                            onclick="updateStoreStatus('{{ order.id }}', 'OUT_FOR_DELIVERY')">Dispatch</button>
+                                        {% elif order.order_status == 'OUT_FOR_DELIVERY' %}
+                                        <button class="btn-action btn-deliver"
+                                            onclick="markAsDelivered('{{ order.id }}')">Mark Delivered</button>
+                                        {% elif order.order_status == 'DELIVERED' and order.payment_method == 'COD' and
+                                        order.payment_status != 'SUCCESS' %}
+                                        <button class="btn-action btn-payment"
+                                            onclick="markPaymentDone('{{ order.id }}')">💰 Mark Collected</button>
+                                        {% elif order.order_status == 'DELIVERED' and order.payment_method == 'COD' and
+                                        order.payment_status == 'SUCCESS' %}
+                                        <span style="color:#27ae60; font-weight:600;">✓ Payment Done</span>
+                                        {% elif order.order_status == 'DELIVERED' and order.payment_method == 'ONLINE'
+                                        and order.payment_status == 'SUCCESS' %}
+                                        <span style="color:#27ae60; font-weight:600;">✓ Completed</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Profile Section -->
+            <div id="profile" class="section">
+                <div class="header">
+                    <h1>Edit Store Profile</h1>
+                </div>
+                {% if save_success %}
+                <div class="success-message">Profile saved successfully!</div>
+                {% endif %}
+                <div class="card">
+                    <form id="profile-form" method="POST" action="{{ url_for('store.save_profile') }}"
+                        enctype="multipart/form-data">
+                        <div class="profile-grid">
+                            <div class="input-group full-width">
+                                <label>Medical Store Name *</label>
+                                <input type="text" name="store_name" id="p-name" required
+                                    value="{{ store.name if store else '' }}">
+                            </div>
+                            <div class="input-group full-width">
+                                <label>Holder Name *</label>
+                                <input type="text" name="holder_name" id="p-holder" required
+                                    value="{{ store.holder_name if store else '' }}">
+                            </div>
+                            <div class="input-group full-width">
+                                <label>Address *</label>
+                                <textarea name="address" id="p-address" rows="3"
+                                    required>{{ store.address if store else '' }}</textarea>
+                            </div>
+                            <div class="input-group">
+                                <label>Phone Number *</label>
+                                <input type="tel" name="phone" id="p-phone" required
+                                    value="{{ store.phone if store else current_user.phone }}">
+                            </div>
+                            <div class="input-group">
+                                <label>Delivery Charge (₹) *</label>
+                                <input type="number" name="delivery_charge" id="p-delivery" step="0.01" required
+                                    value="{{ store.delivery_charge if store else '50.00' }}">
+                            </div>
+                            <div class="input-group">
+                                <label>Opening Time</label>
+                                <input type="time" name="opening_time" id="p-opening"
+                                    value="{{ store.opening_time if store else '09:00' }}">
+                            </div>
+                            <div class="input-group">
+                                <label>Closing Time</label>
+                                <input type="time" name="closing_time" id="p-closing"
+                                    value="{{ store.closing_time if store else '21:00' }}">
+                            </div>
+                            <div class="input-group">
+                                <label>Latitude *</label>
+                                <input type="number" name="latitude" id="p-lat" step="any" required
+                                    value="{{ store.latitude if store else '' }}">
+                            </div>
+                            <div class="input-group">
+                                <label>Longitude *</label>
+                                <input type="number" name="longitude" id="p-lng" step="any" required
+                                    value="{{ store.longitude if store else '' }}">
+                            </div>
+                            <div class="input-group full-width">
+                                <label>Store Description</label>
+                                <textarea name="description" id="p-desc"
+                                    rows="2">{{ store.description if store else 'Verified pharmacy' }}</textarea>
+                            </div>
+                            <div class="input-group">
+                                <label>Store Photo</label>
+                                <input type="file" name="store_photo" id="p-photo" accept="image/*">
+                                {% if store and store.store_photo %}<small>Current: {{ store.store_photo }}</small>{%
+                                endif %}
+                            </div>
+                            <div class="input-group">
+                                <label>Location Link (Google Maps)</label>
+                                <input type="url" name="location_link" id="p-loc"
+                                    value="{{ store.location_link if store else '' }}">
+                            </div>
+                            <div class="input-group">
+                                <label>UPI ID for Payments</label>
+                                <input type="text" name="upi_id" id="p-upi" placeholder="example@upi"
+                                    value="{{ store.upi_id if store else '' }}">
+                            </div>
+                            <div class="input-group">
+                                <label>Payment QR Code</label>
+                                <input type="file" name="qr_code" id="p-qr" accept="image/*">
+                                {% if store and store.qr_code %}<small>Current: {{ store.qr_code }}</small>{% endif %}
+                            </div>
+                        </div>
+                        <br>
+                        <button type="submit" class="btn-save">Save Store Information</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- View Profile Section -->
+            <div id="view-profile" class="section">
+                <div class="header">
+                    <h1>Store Information</h1>
+                </div>
+                <div class="card">
+                    {% if store %}
+                    <div class="profile-grid">
+                        <div class="full-width">
+                            <h2>{{ store.name }}</h2>
+                            <p><strong>Status:</strong>
+                                <span
+                                    class="status-badge {% if store.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                    {{ 'Active' if store.is_active else 'Inactive' }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="input-group"><label>Holder Name:</label>
+                            <p>{{ store.holder_name }}</p>
+                        </div>
+                        <div class="input-group"><label>Phone:</label>
+                            <p>{{ store.phone }}</p>
+                        </div>
+                        <div class="input-group full-width"><label>Address:</label>
+                            <p>{{ store.address }}</p>
+                        </div>
+                        <div class="input-group"><label>Delivery Charge:</label>
+                            <p>₹{{ store.delivery_charge }}</p>
+                        </div>
+                        <div class="input-group"><label>Rating:</label>
+                            <p>{{ store.rating }} ★</p>
+                        </div>
+                        <div class="input-group"><label>Opening Hours:</label>
+                            <p>{{ store.opening_time }} - {{ store.closing_time }}</p>
+                        </div>
+                        <div class="input-group"><label>Location:</label>
+                            <p>{{ store.latitude }}, {{ store.longitude }}</p>
+                        </div>
+                        <div class="input-group full-width"><label>Description:</label>
+                            <p>{{ store.description }}</p>
+                        </div>
+                        {% if store.upi_id %}<div class="input-group"><label>UPI ID:</label>
+                            <p>{{ store.upi_id }}</p>
+                        </div>{% endif %}
+                        {% if store.location_link %}
+                        <div class="input-group full-width">
+                            <label>Google Maps Link:</label>
+                            <p><a href="{{ store.location_link }}" target="_blank">View on Maps</a></p>
+                        </div>
+                        {% endif %}
+                        <div class="input-group full-width"><label>Created At:</label>
+                            <p>{{ store.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        </div>
+                        <div class="input-group full-width"><label>Last Updated:</label>
+                            <p>{{ store.updated_at.strftime('%Y-%m-%d %H:%M') if store.updated_at else 'Not updated' }}
+                            </p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p>No store information found. Please <a href="#" onclick="showSection('profile', event)">edit your
+                            profile</a> to add store information.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div><!-- /content -->
+    </div><!-- /main-dashboard -->
+
+    <!-- ================================================
+         BOTTOM NAVIGATION (mobile)
+    ================================================ -->
+    <nav class="bottom-nav" id="bottom-nav">
+        <button class="bottom-nav-item active" id="bnav-orders"
+            onclick="showSection('orders', event); syncBottomNav('orders'); setTopbarTitle('Today\'s Orders')">
+            <span class="bnav-icon">📦</span>Orders
+        </button>
+        <button class="bottom-nav-item" id="bnav-profile"
+            onclick="showSection('profile', event); syncBottomNav('profile'); setTopbarTitle('Edit Profile')">
+            <span class="bnav-icon">✏️</span>Edit
+        </button>
+        <button class="bottom-nav-item" id="bnav-view-profile"
+            onclick="showSection('view-profile', event); syncBottomNav('view-profile'); setTopbarTitle('Store Info')">
+            <span class="bnav-icon">🏪</span>Store
+        </button>
+        <button class="bottom-nav-item" onclick="logout()" style="color:#e74c3c;">
+            <span class="bnav-icon">🚪</span>Logout
+        </button>
+    </nav>
+
+    <!-- ================================================
+         ENHANCED BILL MODAL
+    ================================================ -->
+    <div id="bill-modal" class="modal">
+        <div class="modal-content">
+
+            <!-- Tab Bar -->
+            <div class="modal-tabs">
+                <button class="modal-tab active" onclick="switchTab('tab-bill')">🧾 Bill / Pavti</button>
+                <button class="modal-tab" onclick="switchTab('tab-charges')">💰 Charges & Payment</button>
+                <button class="modal-tab" onclick="switchTab('tab-receipt')">👁 Preview Receipt</button>
+            </div>
+
+            <!-- TAB 1: Medicine Bill -->
+            <div id="tab-bill" class="modal-tab-content active">
+                <p id="modal-order-info" style="margin:0 0 1rem; font-size:.9rem; color:#555; font-weight:600;"></p>
+
+                <!-- Column headers -->
+                <div class="medicine-header">
+                    <span>Medicine Name</span>
+                    <span>Qty</span>
+                    <span>Unit Price (₹)</span>
+                    <span>Subtotal (₹)</span>
+                    <span></span>
+                </div>
+
+                <!-- Medicine rows container -->
+                <div id="medicine-rows"></div>
+
+                <button class="btn-add-medicine" onclick="addMedicineRow()">
+                    ＋ Add Medicine
+                </button>
+
+                <!-- Summary -->
+                <div class="bill-summary" style="margin-top:1rem;">
+                    <div class="bill-summary-row">
+                        <span>Medicine Subtotal</span>
+                        <span id="sum-medicine">₹0.00</span>
+                    </div>
+                    <div class="bill-summary-row total-row">
+                        <span>Medicine Total</span>
+                        <span id="sum-med-total">₹0.00</span>
+                    </div>
+                </div>
+
+                <button class="btn-save" style="width:100%; margin-top:.5rem;" onclick="switchTab('tab-charges')">
+                    Next: Set Charges →
+                </button>
+            </div>
+
+            <!-- TAB 2: Receipt Preview -->
+            <div id="tab-receipt" class="modal-tab-content">
+                <div id="receipt-preview">
+                    <div class="receipt-header">
+                        <h3 id="rp-store-name">STORE NAME</h3>
+                        <p id="rp-store-address"></p>
+                        <p id="rp-store-phone"></p>
+                    </div>
+                    <hr class="receipt-divider">
+                    <p style="margin:2px 0; font-size:.78rem;">
+                        Bill To: <strong id="rp-patient-name"></strong><br>
+                        Order ID: <span id="rp-tracking-id"></span><br>
+                        Date: <span id="rp-date"></span>
+                    </p>
+                    <hr class="receipt-divider">
+                    <table class="receipt-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Medicine</th>
+                                <th>Qty</th>
+                                <th>Rate</th>
+                                <th class="amount-col">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rp-medicine-rows"></tbody>
+                    </table>
+                    <hr class="receipt-divider">
+                    <div style="text-align:right; font-size:.82rem; padding-right:.4rem;">
+                        <div style="display:flex; justify-content:space-between;"><span>Medicine Total:</span><span
+                                id="rp-med-total">₹0.00</span></div>
+                        <div style="display:flex; justify-content:space-between;"><span>Delivery Charge:</span><span
+                                id="rp-delivery">₹0.00</span></div>
+                    </div>
+                    <div class="receipt-total">
+                        <span>GRAND TOTAL</span>
+                        <span id="rp-grand-total">₹0.00</span>
+                    </div>
+                    <hr class="receipt-divider">
+                    <div style="font-size:.78rem; display:flex; justify-content:space-between;">
+                        <span>Payment: <strong id="rp-payment-mode"></strong></span>
+                        <span id="rp-upi-section"></span>
+                    </div>
+                    <div class="receipt-footer">
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Charges & Payment -->
+            <div id="tab-charges" class="modal-tab-content">
+                <div class="input-group">
+                    <label>Medicine Total (₹) — auto-filled from bill</label>
+                    <input type="number" id="med-price" readonly
+                        style="background:#f0fdf4; font-weight:700; color:#16a34a;">
+                </div>
+                <div class="input-group">
+                    <label>Delivery Charges (₹)</label>
+                    <input type="number" id="del-price" oninput="updateDeliveryCharge()" step="0.01"
+                        value="{{ store.delivery_charge if store else '50' }}">
+                </div>
+                <div class="bill-summary">
+                    <div class="bill-summary-row">
+                        <span>Medicine Total</span>
+                        <span id="charge-med">₹0.00</span>
+                    </div>
+                    <div class="bill-summary-row">
+                        <span>Delivery Charge</span>
+                        <span id="charge-del">₹0.00</span>
+                    </div>
+                    <div class="bill-summary-row total-row">
+                        <span>Grand Total</span>
+                        <span id="total-amount">₹0.00</span>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Payment Mode (Selected by User)</label>
+                    <select id="pay-mode">
+                        <option value="COD">Cash on Delivery</option>
+                        <option value="ONLINE">Online Payment</option>
+                    </select>
+                </div>
+                <button class="btn-save" style="width:100%; margin-top:.5rem;" onclick="switchTab('tab-receipt')">
+                    Next: Set Charges →
+                </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="modal-actions">
+                <button class="btn-modal-action btn-process" onclick="processOrder()">
+                    ✅ Process Order
+                </button>
+                <button class="btn-modal-action btn-download" onclick="downloadPDF()">
+                    ⬇ Download Bill
+                </button>
+                <button class="btn-modal-action btn-send-email" id="btn-send-email" onclick="sendBillEmail()">
+                    📧 Email Bill
+                </button>
+                <button class="btn-modal-action btn-cancel" onclick="closeBillModal()">
+                    Cancel
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
+    <div id="imageModal" class="modal">
+        <span class="close" onclick="closeImage()">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <script>
+        // ============================================================
+        // STATE
+        // ============================================================
+        let currentOrderId = null;
+        let currentPatient = '';
+        let currentTracking = '';
+        let currentAddress = '';
+        let currentEmail = '';
+        let currentPayMode = 'COD';
+        let medicineRowCount = 0;
+
+        const storeName = "{{ store.name if store else 'Medical Store' }}";
+        const storeAddress = "{{ store.address if store else '' }}";
+        const storePhone = "{{ store.phone if store else '' }}";
+        const storeUPI = "{{ store.upi_id if store else '' }}";
+        const storeDeliveryCharge = "{{ store.delivery_charge if store else '50' }}";
+
+        // ============================================================
+        // SECTION / NAV HELPERS (unchanged)
+        // ============================================================
+        function showSection(id, evt) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
+            if (evt && evt.target && evt.target.classList.contains('nav-link')) evt.target.classList.add('active');
+            document.querySelectorAll('.drawer-nav-link').forEach(l => l.classList.remove('active'));
+            const dl = document.getElementById('drawer-' + id);
+            if (dl) dl.classList.add('active');
+        }
+
+        function syncBottomNav(id) {
+            document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+            const el = document.getElementById('bnav-' + id);
+            if (el) el.classList.add('active');
+        }
+
+        function setTopbarTitle(title) {
+            const el = document.getElementById('topbar-title');
+            if (el) el.textContent = title;
+        }
+
+        function toggleDrawer() {
+            const drawer = document.getElementById('mobile-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            const btn = document.getElementById('hamburger-btn');
+            if (drawer.classList.contains('open')) { closeDrawer(); return; }
+            drawer.classList.add('open');
+            overlay.classList.add('visible');
+            btn.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDrawer() {
+            document.getElementById('mobile-drawer').classList.remove('open');
+            document.getElementById('drawer-overlay').classList.remove('visible');
+            document.getElementById('hamburger-btn').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function logout() { window.location.href = "{{ url_for('auth.logout') }}"; }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeBillModal(); closeDrawer(); } });
+
+        // ============================================================
+        // TOAST
+        // ============================================================
+        function showToast(msg, type = 'info', duration = 3500) {
+            const t = document.getElementById('toast');
+            t.className = `toast toast-${type} show`;
+            t.textContent = msg;
+            setTimeout(() => { t.className = 'toast'; }, duration);
+        }
+
+        // ============================================================
+        // MODAL TABS
+        // ============================================================
+        function switchTab(tabId) {
+            document.querySelectorAll('.modal-tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.modal-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            // activate matching button (0=bill, 1=receipt, 2=charges)
+            const map = { 'tab-bill': 0, 'tab-receipt': 2, 'tab-charges': 1 };
+            document.querySelectorAll('.modal-tab')[map[tabId]].classList.add('active');
+
+            if (tabId === 'tab-receipt') renderReceiptPreview();
+            if (tabId === 'tab-charges') syncChargesTab();
+        }
+
+        // ============================================================
+        // OPEN / CLOSE BILL MODAL
+        // ============================================================
+        function openBillModal(orderId, patientName, tracking, address, email, paymentMethod) {
+            currentOrderId = orderId;
+            currentPatient = patientName;
+            currentTracking = tracking;
+            currentAddress = address;
+            currentEmail = email;
+            currentPayMode = paymentMethod;
+
+            document.getElementById('modal-order-info').textContent =
+                `Order for ${patientName}  |  Tracking: ${tracking}`;
+
+            // Reset medicine rows
+            document.getElementById('medicine-rows').innerHTML = '';
+            medicineRowCount = 0;
+
+            // Add one empty row to start
+            addMedicineRow();
+
+            // Pre-fill delivery charge
+            document.getElementById('del-price').value = storeDeliveryCharge;
+
+            // Set payment mode
+            const sel = document.getElementById('pay-mode');
+            for (let i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].value === paymentMethod) { sel.selectedIndex = i; break; }
+            }
+
+            // Reset to first tab
+            switchTab('tab-bill');
+            recalcTotals();
+
+            document.getElementById('bill-modal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeBillModal() {
+            document.getElementById('bill-modal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        // ============================================================
+        // MEDICINE ROW MANAGEMENT
+        // ============================================================
+        function addMedicineRow() {
+            medicineRowCount++;
+            const id = medicineRowCount;
+            const row = document.createElement('div');
+            row.className = 'medicine-row';
+            row.id = `med-row-${id}`;
+            row.innerHTML = `
+                <input type="text"   placeholder="Medicine name"  id="med-name-${id}"  oninput="recalcTotals()">
+                <input type="number" placeholder="Qty"            id="med-qty-${id}"   oninput="recalcTotals()" min="1" value="1">
+                <input type="number" placeholder="Unit price"     id="med-rate-${id}"  oninput="recalcTotals()" min="0" step="0.01">
+                <span class="subtotal-display" id="med-sub-${id}">₹0.00</span>
+                <button class="btn-remove-med" onclick="removeMedicineRow(${id})" title="Remove">✕</button>
+            `;
+            document.getElementById('medicine-rows').appendChild(row);
+            document.getElementById(`med-name-${id}`).focus();
+        }
+
+        function removeMedicineRow(id) {
+            const row = document.getElementById(`med-row-${id}`);
+            if (row) row.remove();
+            recalcTotals();
+        }
+
+        function getMedicineRows() {
+            const rows = document.querySelectorAll('#medicine-rows .medicine-row');
+            const result = [];
+            rows.forEach(row => {
+                const id = row.id.replace('med-row-', '');
+                const name = document.getElementById(`med-name-${id}`)?.value.trim() || '';
+                const qty = parseFloat(document.getElementById(`med-qty-${id}`)?.value) || 0;
+                const rate = parseFloat(document.getElementById(`med-rate-${id}`)?.value) || 0;
+                if (name || rate) result.push({ id, name, qty, rate, subtotal: qty * rate });
+            });
+            return result;
+        }
+
+        function recalcTotals() {
+            const rows = document.querySelectorAll('#medicine-rows .medicine-row');
+            let total = 0;
+            rows.forEach(row => {
+                const id = row.id.replace('med-row-', '');
+                const qty = parseFloat(document.getElementById(`med-qty-${id}`)?.value) || 0;
+                const rate = parseFloat(document.getElementById(`med-rate-${id}`)?.value) || 0;
+                const sub = qty * rate;
+                total += sub;
+                const subEl = document.getElementById(`med-sub-${id}`);
+                if (subEl) subEl.textContent = `₹${sub.toFixed(2)}`;
+            });
+            document.getElementById('sum-medicine').textContent = `₹${total.toFixed(2)}`;
+            document.getElementById('sum-med-total').textContent = `₹${total.toFixed(2)}`;
+
+            // Sync med-price field in charges tab
+            document.getElementById('med-price').value = total.toFixed(2);
+            syncChargesTab();
+        }
+
+        function updateDeliveryCharge() { syncChargesTab(); }
+
+        function syncChargesTab() {
+            const med = parseFloat(document.getElementById('med-price').value) || 0;
+            const del = parseFloat(document.getElementById('del-price').value) || 0;
+            document.getElementById('charge-med').textContent = `₹${med.toFixed(2)}`;
+            document.getElementById('charge-del').textContent = `₹${del.toFixed(2)}`;
+            document.getElementById('total-amount').textContent = `₹${(med + del).toFixed(2)}`;
+        }
+
+        // ============================================================
+        // RECEIPT PREVIEW RENDERER
+        // ============================================================
+        function renderReceiptPreview() {
+            const meds = getMedicineRows();
+            const med = parseFloat(document.getElementById('med-price').value) || 0;
+            const del = parseFloat(document.getElementById('del-price').value) || 0;
+            const mode = document.getElementById('pay-mode').value;
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-IN') + ' ' + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+            document.getElementById('rp-store-name').textContent = storeName;
+            document.getElementById('rp-store-address').textContent = storeAddress;
+            document.getElementById('rp-store-phone').textContent = storePhone ? `📞 ${storePhone}` : '';
+            document.getElementById('rp-patient-name').textContent = currentPatient;
+            document.getElementById('rp-tracking-id').textContent = currentTracking;
+            document.getElementById('rp-date').textContent = dateStr;
+            document.getElementById('rp-med-total').textContent = `₹${med.toFixed(2)}`;
+            document.getElementById('rp-delivery').textContent = `₹${del.toFixed(2)}`;
+            document.getElementById('rp-grand-total').textContent = `₹${(med + del).toFixed(2)}`;
+            document.getElementById('rp-payment-mode').textContent = mode;
+            document.getElementById('rp-upi-section').textContent = (mode === 'ONLINE' && storeUPI) ? `UPI: ${storeUPI}` : '';
+
+            const tbody = document.getElementById('rp-medicine-rows');
+            tbody.innerHTML = '';
+            if (meds.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="color:#aaa; text-align:center;">No medicines added</td></tr>';
+            } else {
+                meds.forEach((m, i) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${i + 1}</td>
+                        <td>${m.name || '—'}</td>
+                        <td>${m.qty}</td>
+                        <td>₹${m.rate.toFixed(2)}</td>
+                        <td class="amount-col">₹${m.subtotal.toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        // ============================================================
+        // GENERATE PDF BYTES using jsPDF
+        // ============================================================
+        function generatePDFDoc() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'mm', format: 'a5' });
+
+            const meds = getMedicineRows();
+            const med = parseFloat(document.getElementById('med-price').value) || 0;
+            const del = parseFloat(document.getElementById('del-price').value) || 0;
+            const mode = document.getElementById('pay-mode').value;
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-IN') + ' ' + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+            const pageW = doc.internal.pageSize.getWidth();
+            let y = 15;
+
+            // Header
+            doc.setFontSize(14); doc.setFont(undefined, 'bold');
+            doc.text(storeName, pageW / 2, y, { align: 'center' });
+            y += 7;
+
+            doc.setFontSize(9); doc.setFont(undefined, 'normal');
+            if (storeAddress) { doc.text(storeAddress, pageW / 2, y, { align: 'center' }); y += 5; }
+            if (storePhone) { doc.text(`Phone: ${storePhone}`, pageW / 2, y, { align: 'center' }); y += 5; }
+
+            // Divider
+            doc.setDrawColor(180); doc.line(10, y, pageW - 10, y); y += 6;
+
+            // Bill info
+            doc.setFontSize(10); doc.setFont(undefined, 'bold');
+            doc.text('BILL / PAVTI', pageW / 2, y, { align: 'center' }); y += 7;
+
+            doc.setFontSize(9); doc.setFont(undefined, 'normal');
+            doc.text(`Bill To   : ${currentPatient}`, 10, y); y += 5;
+            doc.text(`Order ID  : ${currentTracking}`, 10, y); y += 5;
+            doc.text(`Date      : ${dateStr}`, 10, y); y += 5;
+            doc.text(`Address   : ${currentAddress}`, 10, y); y += 5;
+            doc.line(10, y, pageW - 10, y); y += 6;
+
+            // Table header
+            doc.setFont(undefined, 'bold'); doc.setFontSize(9);
+            doc.text('#', 10, y);
+            doc.text('Medicine', 18, y);
+            doc.text('Qty', 90, y);
+            doc.text('Rate', 105, y);
+            doc.text('Amount', 130, y);
+            y += 1;
+            doc.line(10, y, pageW - 10, y); y += 5;
+
+            // Table rows
+            doc.setFont(undefined, 'normal');
+            meds.forEach((m, i) => {
+                doc.text(String(i + 1), 10, y);
+                doc.text(m.name || '—', 18, y);
+                doc.text(String(m.qty), 90, y);
+                doc.text(`Rs ${m.rate.toFixed(2)}`, 105, y);
+                doc.text(`Rs ${m.subtotal.toFixed(2)}`, 130, y);
+                y += 6;
+            });
+
+            if (meds.length === 0) { doc.text('(No medicines added)', 18, y); y += 6; }
+
+            doc.line(10, y, pageW - 10, y); y += 5;
+
+            // Totals
+            doc.text(`Medicine Total  :`, 80, y);
+            doc.setFont(undefined, 'bold');
+            doc.text(`Rs ${med.toFixed(2)}`, 120, y);
+            y += 6;
+            doc.setFont(undefined, 'normal');
+            doc.text(`Delivery Charge :`, 80, y);
+            doc.setFont(undefined, 'bold');
+            doc.text(`Rs ${del.toFixed(2)}`, 120, y);
+            y += 6;
+            doc.line(80, y, pageW - 10, y); y += 4;
+            doc.setFontSize(11);
+            doc.text(`GRAND TOTAL     :`, 80, y);
+            doc.text(`Rs ${(med + del).toFixed(2)}`, 120, y);
+            y += 8;
+
+            doc.setFontSize(9); doc.setFont(undefined, 'normal');
+            doc.text(`Payment Mode: ${mode}`, 10, y);
+            if (mode === 'ONLINE' && storeUPI) { y += 5; doc.text(`UPI: ${storeUPI}`, 10, y); }
+            y += 8;
+
+            doc.line(10, y, pageW - 10, y); y += 6;
+            doc.setFontSize(9); doc.setTextColor(120);
+            return doc;
+        }
+
+        function downloadPDF() {
+            try {
+                const doc = generatePDFDoc();
+                doc.save(`Bill_${currentTracking}.pdf`);
+                showToast('PDF downloaded!', 'success');
+            } catch (e) {
+                showToast('PDF generation failed: ' + e.message, 'error');
+            }
+        }
+
+        // ============================================================
+        // SEND BILL EMAIL — calls backend route
+        // ============================================================
+        async function sendBillEmail() {
+            if (!currentEmail) {
+                showToast('No email address found for this patient.', 'error');
+                return;
+            }
+
+            const meds = getMedicineRows();
+            const med = parseFloat(document.getElementById('med-price').value) || 0;
+            const del = parseFloat(document.getElementById('del-price').value) || 0;
+            const mode = document.getElementById('pay-mode').value;
+
+            const btn = document.getElementById('btn-send-email');
+            btn.innerHTML = '<span class="spinner"></span> Sending...';
+            btn.disabled = true;
+
+            try {
+                const payload = {
+                    order_id: currentOrderId,
+                    patient_name: currentPatient,
+                    tracking_id: currentTracking,
+                    address: currentAddress,
+                    email: currentEmail,
+                    payment_method: mode,
+                    medicine_total: med,
+                    delivery_charge: del,
+                    grand_total: med + del,
+                    medicines: meds,
+                    store_name: storeName,
+                    store_address: storeAddress,
+                    store_phone: storePhone,
+                    store_upi: storeUPI
+                };
+
+                const res = await fetch(`/store/send_bill/${currentOrderId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast(`Bill sent to ${currentEmail}!`, 'success');
+                } else {
+                    showToast(data.error || 'Failed to send email.', 'error');
+                }
+            } catch (e) {
+                showToast('Network error: ' + e.message, 'error');
+            } finally {
+                btn.innerHTML = '📧 Email Bill';
+                btn.disabled = false;
+            }
+        }
+
+        // ============================================================
+        // PROCESS ORDER (existing flow)
+        // ============================================================
+        function processOrder() {
+            const med = parseFloat(document.getElementById('med-price').value) || 0;
+            const del = parseFloat(document.getElementById('del-price').value) || 0;
+            const mode = document.getElementById('pay-mode').value;
+
+            fetch(`/store/process/${currentOrderId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ medicine_total: med, delivery_charge: del, payment_method: mode })
+            }).then(res => {
+                if (res.ok || res.status === 204) {
+                    showToast('Order processed successfully!', 'success', 2000);
+                    setTimeout(() => { closeBillModal(); location.reload(); }, 2000);
+                } else {
+                    showToast('Error processing order.', 'error');
+                }
+            }).catch(() => showToast('Network error.', 'error'));
+        }
+
+        // ============================================================
+        // EXISTING HELPERS (unchanged)
+        // ============================================================
+        function rejectOrder(orderId) {
+            const reason = prompt("Enter reason for rejection:");
+            if (reason !== null) {
+                fetch(`/store/reject/${orderId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ reason })
+                }).then(() => location.reload());
+            }
+        }
+
+        function updateStoreStatus(orderId, status) {
+            fetch(`/store/update_status/${orderId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ status })
+            }).then(() => location.reload());
+        }
+
+        function markAsDelivered(orderId) {
+            if (confirm('Mark this order as delivered?')) {
+                fetch(`/store/update_status/${orderId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ status: 'DELIVERED' })
+                }).then(() => location.reload());
+            }
+        }
+
+        function markPaymentDone(orderId) {
+            if (confirm('Confirm that payment has been collected from the customer?')) {
+                fetch(`/store/mark_paid/${orderId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                }).then(response => {
+                    if (response.ok) { location.reload(); }
+                    else { response.json().then(d => alert(d.error || 'Error marking payment.')); }
+                });
+            }
+        }
+
+        function openImage(src) {
+            document.getElementById("imageModal").style.display = "block";
+            document.getElementById("modalImage").src = src;
+        }
+
+        function closeImage() {
+            document.getElementById("imageModal").style.display = "none";
+        }
+        window.onclick = function (event) {
+            let modal = document.getElementById("imageModal");
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+
+</html>

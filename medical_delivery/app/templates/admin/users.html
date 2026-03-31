@@ -1,0 +1,49 @@
+@"
+{% extends "base.html" %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">User Management</h1>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                Back to Dashboard
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="px-6 py-3 border text-left">ID</th>
+                        <th class="px-6 py-3 border text-left">Name</th>
+                        <th class="px-6 py-3 border text-left">Phone</th>
+                        <th class="px-6 py-3 border text-left">Email</th>
+                        <th class="px-6 py-3 border text-left">Registered</th>
+                        <th class="px-6 py-3 border text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-3 border">{{ user.id }}</td>
+                        <td class="px-6 py-3 border">{{ user.full_name }}</td>
+                        <td class="px-6 py-3 border">{{ user.phone }}</td>
+                        <td class="px-6 py-3 border">{{ user.email or 'N/A' }}</td>
+                        <td class="px-6 py-3 border">{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}</td>
+                        <td class="px-6 py-3 border">
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                                View Orders
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+"@ | Out-File -FilePath "C:\Users\nitin\Downloads\medical_delivery\app\templates\admin\users.html" -Encoding UTF8

@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediOrder – Medicine Delivery</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --green: #16a34a;
+            --green-light: #dcfce7;
+            --green-dark: #14532d;
+            --blue: #2563eb;
+            --blue-light: #eff6ff;
+            --red: #dc2626;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-900: #111827;
+            --white: #ffffff;
+            --radius: 16px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #eff6ff 50%, #fefce8 100%);
+            min-height: 100vh;
+            padding: 24px 16px 48px;
+            color: var(--gray-900);
+        }
+
+        .card {
+            max-width: 560px;
+            margin: 0 auto;
+            background: var(--white);
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        /* Progress bar */
+        .progress-wrap {
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-100);
+            padding: 20px 32px 16px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-500);
+        }
+
+        .progress-bar-bg {
+            background: var(--gray-200);
+            height: 4px;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, var(--green), #22c55e);
+            transition: width 0.5s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .steps-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--gray-200);
+            transition: all 0.3s;
+        }
+
+        .dot.active {
+            background: var(--green);
+            transform: scale(1.25);
+        }
+
+        .dot.done {
+            background: #86efac;
+        }
+
+        /* Content area */
+        .step-content {
+            padding: 32px;
+            animation: fadeUp 0.35s ease;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── LANDING ── */
+        .hero {
+            text-align: center;
+            padding: 48px 32px;
+        }
+
+        .logo-icon {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, var(--green), #22c55e);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 24px rgba(22, 163, 74, 0.3);
+        }
+
+        .logo-icon svg {
+            width: 36px;
+            height: 36px;
+            color: white;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--gray-900);
+        }
+
+        .tagline {
+            font-size: 1rem;
+            color: var(--gray-500);
+            margin: 8px 0 32px;
+        }
+
+        .feature-pills {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 36px;
+        }
+
+        .pill {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 13px;
+            color: var(--gray-700);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--radius);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--green) 0%, #22c55e 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(22, 163, 74, 0.25);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(22, 163, 74, 0.35);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid var(--gray-300);
+            color: var(--gray-700);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--green);
+            color: var(--green);
+            background: var(--green-light);
+        }
+
+        .btn-location {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-location:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Section headings */
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .section-sub {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            margin-bottom: 24px;
+        }
+
+        /* Terms */
+        .terms-box {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: var(--gray-700);
+            line-height: 1.7;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--gray-50);
+            border: 1.5px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .checkbox-row:hover {
+            border-color: var(--green);
+        }
+
+        .checkbox-row input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--green);
+            cursor: pointer;
+        }
+
+        /* Store cards */
+        .store-card {
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .store-card:hover {
+            border-color: var(--green);
+            box-shadow: 0 4px 16px rgba(22, 163, 74, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .store-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+
+        .store-name {
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-green {
+            background: var(--green-light);
+            color: var(--green-dark);
+        }
+
+        .badge-yellow {
+            background: #fef9c3;
+            color: #713f12;
+        }
+
+        .store-meta {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-bottom: 14px;
+        }
+
+        .star {
+            color: #f59e0b;
+        }
+
+        /* Form fields */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 6px;
+            letter-spacing: 0.01em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--gray-900);
+            background: var(--white);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.08);
+        }
+
+        .form-input::placeholder {
+            color: var(--gray-300);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            color: var(--gray-300);
+            font-size: 13px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--gray-200);
+        }
+
+        /* Address textarea */
+        textarea.form-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Location share card */
+        .location-card {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border: 1.5px solid #bfdbfe;
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .location-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .location-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--blue);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .location-icon svg {
+            width: 20px;
+            height: 20px;
+            color: white;
+        }
+
+        .location-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1e3a8a;
+        }
+
+        .location-desc {
+            font-size: 12px;
+            color: #3b82f6;
+        }
+
+        .location-detected {
+            background: #f0fdf4;
+            border: 1.5px solid #86efac;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: var(--green-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        /* Upload zone */
+        .upload-zone {
+            border: 2px dashed var(--gray-300);
+            border-radius: var(--radius);
+            padding: 36px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--gray-50);
+        }
+
+        .upload-zone:hover {
+            border-color: var(--green);
+            background: var(--green-light);
+        }
+
+        .upload-zone.has-file {
+            border-color: var(--green);
+            border-style: solid;
+            background: var(--green-light);
+        }
+
+        .upload-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 12px;
+            color: var(--gray-400);
+        }
+
+        .upload-zone.has-file .upload-icon {
+            color: var(--green);
+        }
+
+        /* Payment cards */
+        .payment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .payment-card {
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .payment-card:hover {
+            border-color: var(--green);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .payment-card.selected {
+            border-color: var(--green);
+            background: var(--green-light);
+        }
+
+        .payment-emoji {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .payment-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        /* Order summary stripe */
+        .order-stripe {
+            background: var(--gray-50);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .order-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            color: var(--gray-700);
+        }
+
+        .order-row.total {
+            font-weight: 700;
+            color: var(--gray-900);
+            border-top: 1px solid var(--gray-200);
+            margin-top: 8px;
+            padding-top: 10px;
+        }
+
+        /* Success */
+        .success-wrap {
+            text-align: center;
+            padding: 16px 0 8px;
+        }
+
+        .success-circle {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--green), #22c55e);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 24px rgba(22, 163, 74, 0.3);
+            animation: pop 0.4s cubic-bezier(.175, .885, .32, 1.275);
+        }
+
+        @keyframes pop {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-circle svg {
+            width: 40px;
+            height: 40px;
+            color: white;
+        }
+
+        .order-id-box {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+
+        .order-id-box span {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--gray-900);
+            display: block;
+            margin-top: 4px;
+        }
+
+        .tracking-steps {
+            display: flex;
+            justify-content: space-between;
+            margin: 24px 0;
+            position: relative;
+        }
+
+        .tracking-steps::before {
+            content: '';
+            position: absolute;
+            top: 16px;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: var(--gray-200);
+            z-index: 0;
+        }
+
+        .track-step {
+            text-align: center;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .track-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            font-size: 14px;
+        }
+
+        .track-dot.active {
+            background: var(--green);
+            box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.15);
+        }
+
+        .track-label {
+            font-size: 11px;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+
+        /* Step visibility */
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        /* Back link */
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--gray-500);
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 0;
+            margin-bottom: 20px;
+            font-family: 'DM Sans', sans-serif;
+            transition: color 0.15s;
+        }
+
+        .back-btn:hover {
+            color: var(--gray-900);
+        }
+
+        /* Info notice */
+        .notice {
+            background: var(--blue-light);
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #1d4ed8;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 8px;
+        }
+
+        @media (max-width: 480px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <form id="order-form" method="POST" action="{{ url_for('order.create_order') }}" enctype="multipart/form-data">
+            <!-- hidden fields for server-side processing -->
+            <input type="hidden" id="delivery_address_input" name="delivery_address" value="">
+            <input type="hidden" id="payment_method_input" name="payment_method" value="">
+            <input type="hidden" id="selected-store-id" name="store_id" value="">
+
+            <!-- Progress (hidden on landing) -->
+            <div class="progress-wrap" id="progress-wrap" style="display:none;">
+                <div class="progress-label">
+                    <span id="step-label">Terms & Conditions</span>
+                    <span id="step-count">Step 1 of 5</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progress-fill" style="width:20%"></div>
+                </div>
+                <div class="steps-dots" id="steps-dots"></div>
+            </div>
+
+            <!-- ── LANDING ── -->
+            <div class="step active" id="step-landing">
+                <div class="hero">
+                    <div class="logo-icon">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                    </div>
+                    <h1>MediOrder</h1>
+                    <p class="tagline">Medicine delivery from nearby stores — fast, safe & reliable</p>
+                    <div class="feature-pills">
+                        <span class="pill">💊 2–4 hr delivery</span>
+                        <span class="pill">🏥 Verified stores</span>
+                        <span class="pill">💰 COD available</span>
+                        <span class="pill">📋 Prescription safe</span>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="goTo(1)">
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                        Order Medicine Now
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── STEP 1: TERMS ── -->
+            <div class="step" id="step-1">
+                <div class="step-content">
+                    <button type="button" class="back-btn" onclick="goTo(0)">← Back</button>
+                    <div class="section-title">Terms & Conditions</div>
+                    <p class="section-sub">Please read and accept before continuing</p>
+
+                    <div class="terms-box">
+                        <strong>📋 Prescription Required</strong><br>
+                        A valid doctor's prescription is mandatory for Schedule H & H1 drugs. Self-medication is not
+                        recommended.<br><br>
+                        <strong>🚚 Delivery Time</strong><br>
+                        Orders are typically delivered within 2–4 hours depending on store availability and
+                        distance.<br><br>
+                        <strong>💳 Payment</strong><br>
+                        We support Cash on Delivery and Online Payment. Payment for medicines will be as per
+                        MRP.<br><br>
+                        <strong>🔒 Privacy</strong><br>
+                        Your health data and prescriptions are stored securely and never shared with third parties.
+                    </div>
+
+                    <label class="checkbox-row" for="accept-terms">
+                        <input type="checkbox" id="accept-terms"
+                            onchange="document.getElementById('terms-btn').disabled = !this.checked">
+                        <span style="font-size:14px; font-weight:500;">I have read and accept the Terms &
+                            Conditions</span>
+                    </label>
+
+                    <button type="button" class="btn btn-primary" id="terms-btn" disabled onclick="goTo(2)">
+                        Continue
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── STEP 2: STORES ── -->
+            <div class="step" id="step-3">
+                <div class="step-content">
+                    <button type="button" class="back-btn" onclick="goTo(1)">← Back</button>
+                    <div class="section-title">Nearby Stores</div>
+                    <p class="section-sub">Choose a pharmacy to fulfill your order</p>
+
+                    {% if stores %}
+                    {% for store in stores %}
+                    <div class="store-card"
+                        onclick="selectStore('{{ store.id }}', '{{ store.name }}', '{{ store.distance|default('N/A') }}', '{{ store.rating|default(0) }}')">
+                        <div class="store-header">
+                            <div class="store-name">{{ store.name }}</div>
+                            <span class="badge badge-green">{{ store.distance|default('N/A') }}</span>
+                        </div>
+                        <div class="store-meta">
+                            <span style="color:#16a34a; font-weight:600;">● Open Now</span>&nbsp;&nbsp;
+                            <span class="star">{% for i in range(store.rating|default(0)|int) %}★{% endfor %}</span>
+                        </div>
+                        <div style="font-size:13px; color:var(--gray-500); margin-bottom:14px;">{{
+                            store.description|default('Verified pharmacy') }}</div>
+                        <button type="button" class="btn btn-primary" style="padding:10px;">Select Store →</button>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p>No nearby stores available.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ── STEP 3: USER INFORMATION ── -->
+            <div class="step" id="step-2">
+                <div class="step-content">
+                    <button type="button" class="back-btn" onclick="goTo(2)">← Back</button>
+                    <div class="section-title">Your Information</div>
+                    <p class="section-sub">We need your details for a smooth delivery</p>
+
+                    <!-- Personal Info -->
+                    <div
+                        style="background:var(--gray-50); border-radius:var(--radius); padding:20px; margin-bottom:20px;">
+                        <div
+                            style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--gray-500); margin-bottom:14px;">
+                            👤 Personal Details</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-input" placeholder="Rohan" id="fname"
+                                    value="{{ user.full_name }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-input" placeholder="Sharma" id="lname">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number</label>
+                            <div style="display:flex; gap:8px;">
+                                <div style="width:60px;">
+                                    <input type="text" class="form-input" value="+91" readonly
+                                        style="text-align:center; background:#f3f4f6; color:var(--gray-500);">
+                                </div>
+                                <input type="tel" class="form-input" placeholder="9876543210" id="phone" maxlength="10"
+                                    style="flex:1;" value="{{ user.phone }}">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                            <label class="form-label">Email Address <span
+                                    style="font-weight:400; color:var(--gray-400);">(optional)</span></label>
+                            <input type="email" class="form-input" placeholder="rohan@example.com" id="email"
+                                value="{{ user.email or '' }}">
+                        </div>
+                    </div>
+
+                    <!-- Address -->
+                    <div
+                        style="background:var(--gray-50); border-radius:var(--radius); padding:20px; margin-bottom:20px;">
+                        <div
+                            style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--gray-500); margin-bottom:14px;">
+                            📍 Delivery Address</div>
+
+                        <div class="form-group">
+                            <label class="form-label">Flat / House No. & Building</label>
+                            <input type="text" class="form-input" placeholder="Flat 4B, Sai Residency" id="addr-line1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Street / Area / Landmark</label>
+                            <input type="text" class="form-input" placeholder="Near Railway Station, MG Road"
+                                id="addr-line2">
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">City</label>
+                                <input type="text" class="form-input" placeholder="Pune" id="city">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Pincode</label>
+                                <input type="text" class="form-input" placeholder="411001" id="pincode" maxlength="6">
+                            </div>
+                        </div>
+
+                        <div class="divider">or share live location</div>
+
+                        <!-- Location Share Card -->
+                        <div class="location-card">
+                            <div class="location-card-header">
+                                <div class="location-icon">
+                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="location-title">Use Live Location</div>
+                                    <div class="location-desc">Auto-fill address with GPS</div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-location" onclick="getLocation()" id="loc-btn"
+                                style="padding:12px;">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Detect My Location
+                            </button>
+                            <div class="location-detected" id="loc-detected">
+                                ✅ <span id="loc-text">Location detected successfully!</span>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-primary" onclick="validateUserInfo()">
+                            Continue to Prescription
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── STEP 4: PRESCRIPTION ── -->
+            <div class="step" id="step-4">
+                <div class="step-content">
+                    <button type="button" class="back-btn" onclick="goTo(3)">← Back</button>
+                    <div class="section-title">Upload Prescription</div>
+                    <p class="section-sub">Required for prescription medicines</p>
+
+                    <div class="notice">
+                        ℹ️ Your prescription is securely stored and only shared with the pharmacist fulfilling your
+                        order.
+                    </div>
+
+                    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('rx-file').click()">
+                        <svg class="upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <div style="font-weight:600; margin-bottom:6px;" id="upload-label">Tap to upload prescription
+                        </div>
+                        <div style="font-size:13px; color:var(--gray-400);">PDF, JPG, PNG · Max 5 MB</div>
+                        <input type="file" id="rx-file" name="prescription" accept="image/*,.pdf" style="display:none;"
+                            onchange="handleFile(this)">
+                    </div>
+
+                    <div style="text-align:center; margin: 14px 0; font-size:13px; color:var(--gray-400);">— or —</div>
+
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('rx-file').click()"
+                        style="width:100%; margin-bottom:20px;">
+                        📷 Take a Photo of Prescription
+                    </button>
+
+                    <button type="button" class="btn btn-primary" id="rx-btn" disabled onclick="goTo(5)">
+                        Continue to Payment
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── STEP 5: PAYMENT ── -->
+            <div class="step" id="step-5">
+                <div class="step-content">
+                    <button type="button" class="back-btn" onclick="goTo(4)">← Back</button>
+                    <div class="section-title">Payment</div>
+                    <p class="section-sub">Choose how you'd like to pay</p>
+
+                    <div class="order-stripe">
+                        <div class="order-row"><span>Store</span><span id="summary-store"
+                                style="font-weight:600;">—</span></div>
+                        <div class="order-row"><span>Delivery to</span><span id="summary-addr"
+                                style="font-weight:600; max-width:200px; text-align:right;">—</span></div>
+                        <div class="order-row"><span>Delivery charges</span><span>₹-</span></div>
+                        <div class="order-row total"><span>To pay at delivery</span><span>₹- + medicine cost</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--gray-500); margin-bottom:12px;">
+                        Select Payment Method</div>
+
+                    <div class="payment-grid">
+                        <div class="payment-card" id="pay-cod" onclick="selectPayment('cod')">
+                            <div class="payment-emoji">💰</div>
+                            <div class="payment-name">Cash on Delivery</div>
+                            <div style="font-size:11px; color:var(--gray-400); margin-top:4px;">Pay when you receive
+                            </div>
+                        </div>
+                        <div class="payment-card" id="pay-online" onclick="selectPayment('online')">
+                            <div class="payment-emoji">📱</div>
+                            <div class="payment-name">UPI / Online</div>
+                            <div style="font-size:11px; color:var(--gray-400); margin-top:4px;">GPay, PhonePe, Paytm
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary" id="pay-btn" disabled onclick="placeOrder()">
+                        🛒 Place Order
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── ORDER CONFIRMED ── -->
+            <div class="step" id="step-confirm">
+                <div class="step-content">
+                    <div class="success-wrap">
+                        <div class="success-circle">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div class="section-title" style="font-size:1.7rem;">Order Placed! 🎉</div>
+                        <p style="color:var(--gray-500); font-size:14px; margin: 8px 0 0;">Your medicine is on its way.
+                            Expected delivery in <strong>2–4 hours</strong>.</p>
+
+                        <div class="order-id-box">
+                            Order ID
+                            <span id="order-id-display">#MED000000</span>
+                        </div>
+
+                        <div class="tracking-steps">
+                            <div class="track-step">
+                                <div class="track-dot active">✓</div>
+                                <div class="track-label">Order<br>Placed</div>
+                            </div>
+                            <div class="track-step">
+                                <div class="track-dot">📋</div>
+                                <div class="track-label">Store<br>Confirms</div>
+                            </div>
+                            <div class="track-step">
+                                <div class="track-dot">🛵</div>
+                                <div class="track-label">Out for<br>Delivery</div>
+                            </div>
+                            <div class="track-step">
+                                <div class="track-dot">🏠</div>
+                                <div class="track-label">Delivered</div>
+                            </div>
+                        </div>
+
+                        <p style="font-size:13px; color:var(--gray-400); margin-bottom:24px;">You'll receive an SMS
+                            update at each step.</p>
+
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">
+                            Start New Order
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+    <div class="container mt-3">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <script>
+        const STEPS = [
+            null,
+            { label: 'Terms & Conditions', count: 'Step 1 of 5' },
+            { label: 'Your Information', count: 'Step 2 of 5' },    // Changed from 'Choose Store'
+            { label: 'Choose Store', count: 'Step 3 of 5' },        // Changed from 'Your Information'
+            { label: 'Prescription', count: 'Step 4 of 5' },
+            { label: 'Payment', count: 'Step 5 of 5' },
+        ];
+
+        let currentStep = 0;
+        let selectedStore = '';
+        let selectedPaymentMethod = '';
+
+        function goTo(n) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            const id = n === 0 ? 'step-landing' : (n === 99 ? 'step-confirm' : `step-${n}`);
+            document.getElementById(id).classList.add('active');
+            currentStep = n;
+
+            const pw = document.getElementById('progress-wrap');
+            if (n === 0 || n === 99) {
+                pw.style.display = 'none';
+            } else {
+                pw.style.display = 'block';
+                document.getElementById('step-label').textContent = STEPS[n].label;
+                document.getElementById('step-count').textContent = STEPS[n].count;
+                document.getElementById('progress-fill').style.width = (n * 20) + '%';
+                renderDots(n);
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderDots(active) {
+            const wrap = document.getElementById('steps-dots');
+            wrap.innerHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const d = document.createElement('div');
+                d.className = 'dot' + (i === active ? ' active' : (i < active ? ' done' : ''));
+                wrap.appendChild(d);
+            }
+        }
+
+        function selectStore(id, name, distance, rating) {
+            selectedStore = id;
+            document.getElementById('summary-store').textContent = name;
+            document.getElementById('selected-store-id').value = id;
+            // Go to step 4 (prescription) instead of step 3
+            goTo(4);
+        }
+
+        function validateUserInfo() {
+            const fname = document.getElementById('fname').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const line1 = document.getElementById('addr-line1').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const pin = document.getElementById('pincode').value.trim();
+
+            // require either a manually entered address line1 or a detected location
+            const locationShown = document.getElementById('loc-detected').style.display === 'flex';
+            if (!fname || !phone || (!line1 && !locationShown)) {
+                alert('Please fill in your name, phone number, and delivery address.');
+                return;
+            }
+
+            const addrDisplay = city ? `${line1 ? line1 + ', ' : ''}${city}` : (line1 || 'Location shared');
+            document.getElementById('summary-addr').textContent = addrDisplay || 'Address provided';
+            // update hidden input for server
+            document.getElementById('delivery_address_input').value = addrDisplay;
+            // Go to step 3 (stores) instead of step 4
+            goTo(3);
+        }
+
+        function getLocation() {
+            const btn = document.getElementById('loc-btn');
+            btn.textContent = '⏳ Detecting...';
+            btn.disabled = true;
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        const lat = pos.coords.latitude.toFixed(4);
+                        const lng = pos.coords.longitude.toFixed(4);
+                        document.getElementById('loc-text').textContent = `Detected: ${lat}°N, ${lng}°E`;
+                        const detected = document.getElementById('loc-detected');
+                        detected.style.display = 'flex';
+                        btn.textContent = '✅ Location Detected';
+                        btn.style.background = '#15803d';
+                        // Optional: fill city/pin if they're empty
+                        if (!document.getElementById('city').value) {
+                            document.getElementById('city').value = 'Detected Area';
+                        }
+                    },
+                    err => {
+                        btn.textContent = '⚠️ Could not detect. Try again';
+                        btn.disabled = false;
+                    }
+                );
+            } else {
+                btn.textContent = '⚠️ GPS not supported';
+                btn.disabled = false;
+            }
+        }
+
+        function handleFile(input) {
+            if (input.files && input.files[0]) {
+                const name = input.files[0].name;
+                document.getElementById('upload-label').textContent = '✅ ' + name;
+                document.getElementById('upload-zone').classList.add('has-file');
+                document.getElementById('rx-btn').disabled = false;
+            }
+        }
+
+        function selectPayment(method) {
+            selectedPaymentMethod = method;
+            document.getElementById('pay-cod').classList.remove('selected');
+            document.getElementById('pay-online').classList.remove('selected');
+            document.getElementById('pay-' + method).classList.add('selected');
+            document.getElementById('pay-btn').disabled = false;
+            // update hidden field
+            document.getElementById('payment_method_input').value = method;
+        }
+
+        function placeOrder() {
+            // ensure a prescription file has been chosen
+            const fileInput = document.getElementById('rx-file');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please upload your prescription before placing the order.');
+                goTo(4);
+                return;
+            }
+            // ensure a store has been selected, or auto-pick first available
+            let storeId = document.getElementById('selected-store-id').value;
+            if (!storeId) {
+                const firstCard = document.querySelector('.store-card');
+                if (firstCard) firstCard.click();
+            }
+            if (!storeId) { alert('Please select a nearby pharmacy before placing your order.'); return; }
+            // ensure delivery address has been provided
+            const addrVal = document.getElementById('delivery_address_input').value;
+            if (!addrVal) { alert('Please fill in your delivery address.'); goTo(3); return; }
+            // ensure payment method selected
+            if (!selectedPaymentMethod) {
+                alert('Please select a payment method.');
+                return;
+            }
+            document.getElementById('order-form').submit();
+        }
+
+        // Init
+        goTo(0);
+    </script>
+</body>
+
+</html>

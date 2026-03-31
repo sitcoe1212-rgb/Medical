@@ -1,0 +1,99 @@
+CREATE TABLE users (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    full_name VARCHAR(150) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    email VARCHAR(150),
+    password_hash TEXT NOT NULL,
+    `role` ENUM('customer','store','admin') NOT NULL,
+    is_active BOOL,
+    latitude FLOAT,
+    longitude FLOAT,
+    address TEXT,
+    created_at DATETIME,
+    PRIMARY KEY (id),
+    UNIQUE (phone),
+    UNIQUE (email)
+)
+
+CREATE TABLE prescriptions (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    file_path TEXT NOT NULL,
+    user_id INTEGER NOT NULL,
+    uploaded_at DATETIME,
+    PRIMARY KEY (id),
+    FOREIGN KEY(user_id) REFERENCES users (id)
+)
+
+CREATE TABLE stores (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    user_id INTEGER NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    address TEXT NOT NULL,
+    phone VARCHAR(20),
+    latitude FLOAT NOT NULL,
+    longitude FLOAT NOT NULL,
+    is_active BOOL,
+    rating FLOAT,
+    delivery_charge FLOAT,
+    opening_time VARCHAR(5),
+    closing_time VARCHAR(5),
+    description VARCHAR(200),
+    store_photo VARCHAR(200),
+    upi_id VARCHAR(100),
+    qr_code VARCHAR(200),
+    location_link VARCHAR(500),
+    holder_name VARCHAR(150),
+    created_at DATETIME,
+    updated_at DATETIME,
+    PRIMARY KEY (id),
+    FOREIGN KEY(user_id) REFERENCES users (id)
+)
+
+CREATE TABLE orders (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    tracking_id VARCHAR(50) NOT NULL,
+    user_id INTEGER NOT NULL,
+    store_id INTEGER,
+    prescription_id INTEGER,
+    delivery_address TEXT NOT NULL,
+    delivery_lat FLOAT,
+    delivery_lng FLOAT,
+    distance_km FLOAT,
+    delivery_charge FLOAT,
+    medicine_total FLOAT,
+    total_amount FLOAT,
+    payment_method ENUM('COD','ONLINE'),
+    payment_status ENUM('PENDING','SUCCESS','FAILED'),
+    order_status ENUM('NEW','ACCEPTED','REJECTED','PREPARING','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'),
+    created_at DATETIME,
+    updated_at DATETIME,
+    PRIMARY KEY (id),
+    UNIQUE (tracking_id),
+    FOREIGN KEY(user_id) REFERENCES users (id),
+    FOREIGN KEY(store_id) REFERENCES stores (id),
+    FOREIGN KEY(prescription_id) REFERENCES prescriptions (id)
+)
+
+CREATE TABLE notifications (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    user_id INTEGER NOT NULL,
+    order_id INTEGER,
+    message TEXT NOT NULL,
+    is_read BOOL,
+    created_at DATETIME,
+    PRIMARY KEY (id),
+    FOREIGN KEY(user_id) REFERENCES users (id),
+    FOREIGN KEY(order_id) REFERENCES orders (id)
+)
+
+CREATE TABLE payments (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    order_id INTEGER NOT NULL,
+    transaction_id VARCHAR(150),
+    payment_gateway VARCHAR(50),
+    amount FLOAT NOT NULL,
+    status ENUM('INITIATED','SUCCESS','FAILED'),
+    created_at DATETIME,
+    PRIMARY KEY (id),
+    FOREIGN KEY(order_id) REFERENCES orders (id)
+)

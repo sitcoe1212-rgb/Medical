@@ -1,0 +1,66 @@
+@"
+{% extends "base.html" %}
+
+{% block title %}Manage Stores{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Store Management</h1>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                Back to Dashboard
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="px-6 py-3 border text-left">ID</th>
+                        <th class="px-6 py-3 border text-left">Store Name</th>
+                        <th class="px-6 py-3 border text-left">Owner</th>
+                        <th class="px-6 py-3 border text-left">Phone</th>
+                        <th class="px-6 py-3 border text-left">Status</th>
+                        <th class="px-6 py-3 border text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for store in stores %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-3 border">{{ store.id }}</td>
+                        <td class="px-6 py-3 border">{{ store.name or 'Not set' }}</td>
+                        <td class="px-6 py-3 border">{{ store.holder_name or 'N/A' }}</td>
+                        <td class="px-6 py-3 border">{{ store.phone or 'N/A' }}</td>
+                        <td class="px-6 py-3 border">
+                            {% if store.is_active %}
+                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">Active</span>
+                            {% else %}
+                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-sm">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3 border">
+                            {% if not store.is_active %}
+                            <form action="{{ url_for('admin.approve_store', store_id=store.id) }}" method="POST" class="inline">
+                                <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600">
+                                    Approve
+                                </button>
+                            </form>
+                            <form action="{{ url_for('admin.reject_store', store_id=store.id) }}" method="POST" class="inline">
+                                <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">
+                                    Reject
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-gray-500 text-sm">Approved</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+"@ | Out-File -FilePath "C:\Users\nitin\Downloads\medical_delivery\app\templates\admin\stores.html" -Encoding UTF8

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Track Your Order</h2>
+
+<form method="POST">
+    <input type="text" name="tracking_id" placeholder="Enter Tracking ID" required>
+    <button type="submit">Track</button>
+</form>
+
+<hr>
+
+{% if order %}
+<h3>Order Details</h3>
+<p>Status: {{ order.order_status }}</p>
+<p>Payment: {{ order.payment_status }}</p>
+<p>Total: ₹{{ order.total_amount }}</p>
+<p>Delivery Address: {{ order.delivery_address }}</p>
+{% elif order is not none %}
+<p>Invalid Tracking ID</p>
+{% endif %}
+
+{% endblock %}

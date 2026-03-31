@@ -1,0 +1,25 @@
+# Flask Core
+Flask==3.0.0
+Flask-Login==0.6.3
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
+
+# Email Support
+Flask-Mail==0.9.1
+
+# Payment Gateway
+razorpay==1.4.1
+
+# Database
+SQLAlchemy==2.0.23
+mysqlclient==2.2.0
+
+# Security
+Werkzeug==3.0.1
+bcrypt==4.1.2
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# Utilities
+uuid==1.30

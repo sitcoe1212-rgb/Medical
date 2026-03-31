@@ -1,0 +1,1356 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    /* ============================================================
+       CSS VARIABLES — WHITE THEME (default)
+    ============================================================ */
+    :root {
+        --bg: #f1f5f9;
+        --surface: #ffffff;
+        --surface2: #f9fafb;
+        --surface3: #f3f4f6;
+        --accent: #1e3a8a;
+        --accent-light: #3b82f6;
+        --accent2: #059669;
+        --accent-warn: #d97706;
+        --accent-danger: #dc2626;
+        --text: #111827;
+        --text-muted: #6b7280;
+        --border: #e5e7eb;
+        --shadow: rgba(0, 0, 0, 0.08);
+        --card-hover-shadow: rgba(0, 0, 0, 0.12);
+        --tracking-bg: rgba(30, 58, 138, 0.08);
+        --tracking-border: rgba(30, 58, 138, 0.15);
+        --tracking-color: #1e3a8a;
+        --header-top: linear-gradient(90deg, #1e3a8a, #3b82f6);
+        --btn-glow: rgba(30, 58, 138, 0.2);
+        --stat-blue-bg: rgba(30, 58, 138, 0.08);
+        --stat-warn-bg: rgba(217, 119, 6, 0.1);
+        --stat-green-bg: rgba(5, 150, 105, 0.1);
+        --bottom-nav-bg: #ffffff;
+        --toggle-bg: #f3f4f6;
+        --toggle-border: #e5e7eb;
+        --toggle-text: #374151;
+    }
+
+    /* ============================================================
+       CSS VARIABLES — DARK THEME
+    ============================================================ */
+    [data-theme="dark"] {
+        --bg: #0d0f14;
+        --surface: #151820;
+        --surface2: #1c2030;
+        --surface3: #242840;
+        --accent: #4f8ef7;
+        --accent-light: #6fa8ff;
+        --accent2: #38d9a9;
+        --accent-warn: #f59e0b;
+        --accent-danger: #f87171;
+        --text: #e8eaf0;
+        --text-muted: #7a7f9a;
+        --border: rgba(255, 255, 255, 0.07);
+        --shadow: rgba(0, 0, 0, 0.5);
+        --card-hover-shadow: rgba(0, 0, 0, 0.3);
+        --tracking-bg: rgba(79, 142, 247, 0.1);
+        --tracking-border: rgba(79, 142, 247, 0.2);
+        --tracking-color: #4f8ef7;
+        --header-top: linear-gradient(90deg, #4f8ef7, #38d9a9);
+        --btn-glow: rgba(79, 142, 247, 0.2);
+        --stat-blue-bg: rgba(79, 142, 247, 0.15);
+        --stat-warn-bg: rgba(245, 158, 11, 0.15);
+        --stat-green-bg: rgba(56, 217, 169, 0.15);
+        --bottom-nav-bg: #151820;
+        --toggle-bg: #1c2030;
+        --toggle-border: rgba(255, 255, 255, 0.1);
+        --toggle-text: #e8eaf0;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: var(--bg);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: var(--text);
+        min-height: 100vh;
+        transition: background .3s ease, color .3s ease;
+    }
+
+    /* Dark mode bg glow */
+    [data-theme="dark"] body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background:
+            radial-gradient(ellipse 55% 35% at 15% 10%, rgba(79, 142, 247, .08) 0%, transparent 65%),
+            radial-gradient(ellipse 45% 30% at 85% 85%, rgba(56, 217, 169, .06) 0%, transparent 65%);
+        pointer-events: none;
+    }
+
+    .page-wrap {
+        position: relative;
+        z-index: 1;
+    }
+
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+
+    /* ============================================================
+       THEME TOGGLE BUTTON
+    ============================================================ */
+    .theme-toggle-wrap {
+        position: fixed;
+        top: 1rem;
+        right: 1.25rem;
+        z-index: 999;
+    }
+
+    .theme-toggle-btn {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 50px;
+        padding: .45rem .9rem .45rem .5rem;
+        cursor: pointer;
+        font-size: .82rem;
+        font-weight: 600;
+        color: var(--toggle-text);
+        box-shadow: 0 2px 12px var(--shadow);
+        transition: all .25s ease;
+        white-space: nowrap;
+    }
+
+    .theme-toggle-btn:hover {
+        box-shadow: 0 4px 20px var(--shadow);
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .toggle-track {
+        width: 36px;
+        height: 20px;
+        background: var(--border);
+        border-radius: 20px;
+        position: relative;
+        transition: background .3s;
+        flex-shrink: 0;
+    }
+
+    [data-theme="dark"] .toggle-track {
+        background: var(--accent);
+    }
+
+    .toggle-thumb {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: white;
+        transition: transform .3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .6rem;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+    }
+
+    [data-theme="dark"] .toggle-thumb {
+        transform: translateX(16px);
+    }
+
+    .toggle-label {
+        font-size: .8rem;
+    }
+
+    /* ============================================================
+       HEADER
+    ============================================================ */
+    .dashboard-header {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 2rem 2.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 24px var(--shadow);
+        transition: background .3s, border-color .3s, box-shadow .3s;
+    }
+
+    .dashboard-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--header-top);
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+    .header-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-light));
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 4px 16px var(--btn-glow);
+        transition: background .3s;
+    }
+
+    .header-icon i {
+        font-size: 1.6rem;
+        color: white;
+    }
+
+    .header-text h1 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: .2rem;
+        line-height: 1.2;
+        transition: color .3s;
+    }
+
+    .header-text p {
+        color: var(--text-muted);
+        font-size: .95rem;
+        transition: color .3s;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: .85rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    /* ============================================================
+       BUTTONS
+    ============================================================ */
+    .btn {
+        padding: .75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: .92rem;
+        cursor: pointer;
+        transition: all .25s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        border: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-light));
+        color: white;
+        box-shadow: 0 4px 16px var(--btn-glow);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px var(--btn-glow);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        transition: all .25s, background .3s, border-color .3s;
+    }
+
+    .btn-outline:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    /* ============================================================
+       STATS GRID
+    ============================================================ */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.2rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all .25s ease, background .3s, border-color .3s;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 2px 12px var(--shadow);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px var(--card-hover-shadow);
+    }
+
+    .stat-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent), transparent);
+        opacity: 0;
+        transition: opacity .3s;
+    }
+
+    .stat-card:hover::after {
+        opacity: 1;
+    }
+
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: background .3s;
+    }
+
+    .stat-icon-blue {
+        background: var(--stat-blue-bg);
+        color: var(--accent);
+    }
+
+    .stat-icon-warn {
+        background: var(--stat-warn-bg);
+        color: var(--accent-warn);
+    }
+
+    .stat-icon-green {
+        background: var(--stat-green-bg);
+        color: var(--accent2);
+    }
+
+    .stat-icon i {
+        font-size: 1.4rem;
+    }
+
+    .stat-info h3 {
+        font-size: .75rem;
+        color: var(--text-muted);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-bottom: .4rem;
+        transition: color .3s;
+    }
+
+    .stat-info p {
+        font-size: 1.9rem;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1;
+        transition: color .3s;
+    }
+
+    /* ============================================================
+       ORDERS SECTION
+    ============================================================ */
+    .orders-section {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 24px var(--shadow);
+        position: relative;
+        overflow: hidden;
+        transition: background .3s, border-color .3s;
+    }
+
+    .orders-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent2), var(--accent));
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.75rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+        transition: color .3s;
+    }
+
+    .section-header h2 i {
+        color: var(--accent);
+        font-size: 1.2rem;
+    }
+
+    .order-count {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        padding: .4rem .9rem;
+        border-radius: 20px;
+        font-size: .85rem;
+        font-weight: 600;
+        transition: background .3s, color .3s;
+    }
+
+    /* ============================================================
+       DESKTOP TABLE
+    ============================================================ */
+    .table-responsive {
+        overflow-x: auto;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        transition: border-color .3s;
+    }
+
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 640px;
+    }
+
+    .orders-table th {
+        text-align: left;
+        padding: 1rem;
+        background: var(--surface2);
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: .78rem;
+        border-bottom: 1px solid var(--border);
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        white-space: nowrap;
+        transition: background .3s, color .3s;
+    }
+
+    .orders-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--text);
+        vertical-align: middle;
+        font-size: .92rem;
+        transition: color .3s, background .3s;
+    }
+
+    .orders-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .orders-table tr:hover td {
+        background: var(--surface2);
+    }
+
+    /* ============================================================
+       BADGES
+    ============================================================ */
+    .tracking-id {
+        font-family: 'SF Mono', Monaco, monospace;
+        font-weight: 600;
+        color: var(--tracking-color);
+        background: var(--tracking-bg);
+        border: 1px solid var(--tracking-border);
+        padding: .35rem .75rem;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        font-size: .82rem;
+        transition: all .3s;
+    }
+
+    .status-badge,
+    .payment-status {
+        padding: .35rem .8rem;
+        border-radius: 20px;
+        font-size: .75rem;
+        font-weight: 700;
+        display: inline-block;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        white-space: nowrap;
+    }
+
+    /* Light theme badge colors */
+    .status-new {
+        background: #dbeafe;
+        color: #1e3a8a;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .status-accepted {
+        background: #dcfce7;
+        color: #059669;
+    }
+
+    .status-processing {
+        background: #dbeafe;
+        color: #1e3a8a;
+    }
+
+    .status-out_for_delivery {
+        background: #fff7ed;
+        color: #c2410c;
+    }
+
+    .status-delivered {
+        background: #dcfce7;
+        color: #059669;
+    }
+
+    .status-rejected {
+        background: #fecaca;
+        color: #dc2626;
+    }
+
+    .status-completed {
+        background: #dcfce7;
+        color: #059669;
+    }
+
+    .status-cancelled {
+        background: #fecaca;
+        color: #dc2626;
+    }
+
+    .payment-paid {
+        background: #dcfce7;
+        color: #059669;
+    }
+
+    .payment-failed {
+        background: #fecaca;
+        color: #dc2626;
+    }
+
+    .payment-pending {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .payment-success {
+        background: #dcfce7;
+        color: #059669;
+    }
+
+    /* Dark theme badge overrides */
+    [data-theme="dark"] .status-new {
+        background: rgba(79, 142, 247, .15);
+        color: #4f8ef7;
+    }
+
+    [data-theme="dark"] .status-pending {
+        background: rgba(245, 158, 11, .15);
+        color: #f59e0b;
+    }
+
+    [data-theme="dark"] .status-accepted {
+        background: rgba(56, 217, 169, .15);
+        color: #38d9a9;
+    }
+
+    [data-theme="dark"] .status-processing {
+        background: rgba(79, 142, 247, .15);
+        color: #4f8ef7;
+    }
+
+    [data-theme="dark"] .status-out_for_delivery {
+        background: rgba(251, 146, 60, .15);
+        color: #fb923c;
+    }
+
+    [data-theme="dark"] .status-delivered {
+        background: rgba(56, 217, 169, .15);
+        color: #38d9a9;
+    }
+
+    [data-theme="dark"] .status-rejected {
+        background: rgba(248, 113, 113, .15);
+        color: #f87171;
+    }
+
+    [data-theme="dark"] .status-completed {
+        background: rgba(56, 217, 169, .15);
+        color: #38d9a9;
+    }
+
+    [data-theme="dark"] .status-cancelled {
+        background: rgba(248, 113, 113, .15);
+        color: #f87171;
+    }
+
+    [data-theme="dark"] .payment-paid {
+        background: rgba(56, 217, 169, .15);
+        color: #38d9a9;
+    }
+
+    [data-theme="dark"] .payment-failed {
+        background: rgba(248, 113, 113, .15);
+        color: #f87171;
+    }
+
+    [data-theme="dark"] .payment-pending {
+        background: rgba(245, 158, 11, .15);
+        color: #f59e0b;
+    }
+
+    [data-theme="dark"] .payment-success {
+        background: rgba(56, 217, 169, .15);
+        color: #38d9a9;
+    }
+
+    .amount {
+        font-weight: 700;
+        color: var(--text);
+        font-size: 1rem;
+        transition: color .3s;
+    }
+
+    .amount-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .amount-tooltip {
+        visibility: hidden;
+        opacity: 0;
+        background: var(--surface3);
+        border: 1px solid var(--border);
+        color: var(--text);
+        text-align: left;
+        border-radius: 8px;
+        padding: .5rem .75rem;
+        position: absolute;
+        z-index: 10;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        font-size: .75rem;
+        transition: opacity .2s;
+        pointer-events: none;
+    }
+
+    .amount-container:hover .amount-tooltip {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .date {
+        color: var(--text-muted);
+        font-size: .88rem;
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+        white-space: nowrap;
+        transition: color .3s;
+    }
+
+    .pay-now-btn {
+        background: linear-gradient(135deg, var(--accent), var(--accent-light));
+        color: white;
+        padding: .5rem 1rem;
+        border-radius: 9px;
+        text-decoration: none;
+        font-size: .85rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        transition: all .25s;
+        box-shadow: 0 2px 10px var(--btn-glow);
+        white-space: nowrap;
+    }
+
+    .pay-now-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px var(--btn-glow);
+        color: white;
+    }
+
+    /* ============================================================
+       EMPTY STATE
+    ============================================================ */
+    .empty-state {
+        text-align: center;
+        padding: 3.5rem 2rem;
+        border: 1px dashed var(--border);
+        border-radius: 16px;
+        background: var(--surface2);
+        transition: background .3s, border-color .3s;
+    }
+
+    .empty-state i {
+        font-size: 3.5rem;
+        color: var(--text-muted);
+        margin-bottom: 1.25rem;
+        opacity: .5;
+        display: block;
+    }
+
+    .empty-state h3 {
+        color: var(--text);
+        font-size: 1.3rem;
+        margin-bottom: .6rem;
+    }
+
+    .empty-state p {
+        color: var(--text-muted);
+        font-size: .95rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* ============================================================
+       MOBILE ORDER CARDS
+    ============================================================ */
+    .mobile-order-list {
+        display: none;
+    }
+
+    .order-card {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.1rem 1.2rem;
+        margin-bottom: .9rem;
+        position: relative;
+        overflow: hidden;
+        transition: border-color .2s, transform .2s, background .3s;
+    }
+
+    .order-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .order-card:active {
+        transform: scale(.99);
+    }
+
+    .order-card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, var(--accent), var(--accent2));
+        border-radius: 3px 0 0 3px;
+    }
+
+    .order-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: .85rem;
+        gap: .5rem;
+    }
+
+    .order-card-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .75rem .9rem;
+        margin-bottom: .85rem;
+    }
+
+    .order-card-field {
+        display: flex;
+        flex-direction: column;
+        gap: .25rem;
+    }
+
+    .order-card-label {
+        font-size: .68rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        color: var(--text-muted);
+        transition: color .3s;
+    }
+
+    .order-card-value {
+        font-size: .92rem;
+        font-weight: 600;
+        color: var(--text);
+        transition: color .3s;
+    }
+
+    .order-card-footer {
+        border-top: 1px solid var(--border);
+        padding-top: .85rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .5rem;
+        flex-wrap: wrap;
+        transition: border-color .3s;
+    }
+
+    .breakdown-pill {
+        font-size: .72rem;
+        color: var(--text-muted);
+        background: var(--surface3);
+        padding: .3rem .65rem;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        transition: all .3s;
+    }
+
+    /* ============================================================
+       MOBILE BOTTOM NAV
+    ============================================================ */
+    .mobile-bottom-nav {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 64px;
+        background: var(--bottom-nav-bg);
+        border-top: 1px solid var(--border);
+        z-index: 100;
+        align-items: center;
+        justify-content: space-around;
+        box-shadow: 0 -4px 20px var(--shadow);
+        transition: background .3s, border-color .3s;
+    }
+
+    .bnav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: .62rem;
+        font-weight: 600;
+        letter-spacing: .03em;
+        text-transform: uppercase;
+        padding: 6px 4px;
+        transition: color .2s;
+        border: none;
+        background: none;
+        cursor: pointer;
+    }
+
+    .bnav-item i {
+        font-size: 1.25rem;
+    }
+
+    .bnav-item.active {
+        color: var(--accent);
+    }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (max-width: 767px) {
+
+        /* Theme toggle — smaller on mobile */
+        .theme-toggle-wrap {
+            top: .7rem;
+            right: .8rem;
+        }
+
+        .theme-toggle-btn {
+            padding: .38rem .75rem .38rem .45rem;
+            font-size: .76rem;
+        }
+
+        .toggle-label {
+            display: none;
+        }
+
+        .dashboard-container {
+            margin: 0;
+            padding: 0;
+            max-width: 100%;
+        }
+
+        .dashboard-header {
+            border-radius: 0;
+            padding: 1rem 1rem .9rem;
+            margin-bottom: 0;
+            border-left: none;
+            border-right: none;
+            border-top: none;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        /* Give space for theme toggle in header */
+        .header-actions {
+            padding-right: 90px;
+        }
+
+        .header-left {
+            gap: .85rem;
+        }
+
+        .header-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+        }
+
+        .header-icon i {
+            font-size: 1.3rem;
+        }
+
+        .header-text h1 {
+            font-size: 1.05rem;
+        }
+
+        .header-text p {
+            font-size: .78rem;
+        }
+
+        .header-actions {
+            gap: .5rem;
+        }
+
+        .header-actions .btn {
+            padding: .55rem .9rem;
+            font-size: .8rem;
+            border-radius: 10px;
+        }
+
+        .btn-outline .btn-text {
+            display: none;
+        }
+
+        .mobile-content-wrap {
+            padding: 1rem .9rem;
+            padding-bottom: calc(64px + 1rem);
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: .65rem;
+            margin-bottom: 1.1rem;
+        }
+
+        .stat-card {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: .9rem;
+            border-radius: 14px;
+            gap: .55rem;
+        }
+
+        .stat-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+        }
+
+        .stat-icon i {
+            font-size: 1rem;
+        }
+
+        .stat-info h3 {
+            font-size: .62rem;
+            margin-bottom: .15rem;
+        }
+
+        .stat-info p {
+            font-size: 1.5rem;
+        }
+
+        .orders-section {
+            border-radius: 16px;
+            padding: 1rem .9rem;
+        }
+
+        .section-header {
+            margin-bottom: 1.1rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.1rem;
+        }
+
+        .section-header h2 i {
+            font-size: 1rem;
+        }
+
+        .table-responsive {
+            display: none;
+        }
+
+        .mobile-order-list {
+            display: block;
+        }
+
+        .mobile-bottom-nav {
+            display: flex;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .stats-grid {
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: .4rem;
+        }
+
+        .stat-info p {
+            font-size: 1.3rem;
+        }
+
+        .order-card-body {
+            grid-template-columns: 1fr;
+            gap: .5rem;
+        }
+    }
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<!-- ================================================
+     THEME TOGGLE (fixed top right)
+================================================ -->
+<div class="theme-toggle-wrap">
+    <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn" title="Switch Theme">
+        <div class="toggle-track">
+            <div class="toggle-thumb" id="toggle-thumb">
+                <i class="fas fa-moon" id="toggle-icon" style="font-size:.55rem; color:#7a7f9a;"></i>
+            </div>
+        </div>
+        <span class="toggle-label" id="toggle-label">Dark Mode</span>
+    </button>
+</div>
+
+<div class="page-wrap">
+
+    <!-- ================================================
+     HEADER
+================================================ -->
+    <div class="dashboard-header">
+        <div class="header-left">
+            <div class="header-icon">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="header-text">
+                <h1>Hey, {{ current_user.full_name }}!</h1>
+                <p>Track your medicine orders</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{{ url_for('user.new_order') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i>
+                <span class="btn-text">New Order</span>
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="btn-text">Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ================================================
+     MAIN CONTENT
+================================================ -->
+    <div class="dashboard-container">
+        <div class="mobile-content-wrap">
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-blue"><i class="fas fa-shopping-bag"></i></div>
+                    <div class="stat-info">
+                        <h3>Total</h3>
+                        <p>{{ orders|length if orders else 0 }}</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-warn"><i class="fas fa-clock"></i></div>
+                    <div class="stat-info">
+                        <h3>Pending</h3>
+                        <p>{{ orders|selectattr('order_status', 'equalto', 'PENDING')|list|length if orders else 0 }}
+                        </p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-green"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-info">
+                        <h3>Done</h3>
+                        <p>{{ orders|selectattr('order_status', 'equalto', 'DELIVERED')|list|length if orders else 0 }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Section -->
+            <div class="orders-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-history"></i> Order History</h2>
+                    <span class="order-count">{{ orders|length if orders else 0 }} Orders</span>
+                </div>
+
+                {% if orders %}
+
+                <!-- DESKTOP TABLE -->
+                <div class="table-responsive">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Tracking ID</th>
+                                <th>Status</th>
+                                <th>Total Amount</th>
+                                <th>Payment Status</th>
+                                <th>Order Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td>
+                                    <span class="tracking-id">
+                                        <i class="fas fa-hashtag"></i>{{ order.tracking_id }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-{{ order.order_status|lower }}">{{
+                                        order.order_status }}</span>
+                                </td>
+                                <td>
+                                    <div class="amount-container">
+                                        {% if order.medicine_total > 0 %}
+                                        <span class="amount">₹{{ "%.2f"|format(order.total_amount) }}</span>
+                                        {% if order.medicine_amount and order.delivery_charge %}
+                                        <span class="amount-tooltip">
+                                            Medicine: ₹{{ "%.2f"|format(order.medicine_amount) }}<br>
+                                            Delivery: ₹{{ "%.2f"|format(order.delivery_charge) }}
+                                        </span>
+                                        {% endif %}
+                                        {% else %}
+                                        <span class="status-badge status-pending">Awaiting approval</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="payment-status payment-{{ order.payment_status|lower }}">{{
+                                        order.payment_status }}</span>
+                                </td>
+                                <td>
+                                    <span class="date">
+                                        <i class="far fa-calendar-alt"></i>
+                                        {{ order.created_at.strftime("%b %d, %Y") }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if order.payment_method == "ONLINE" and order.payment_status == "PENDING" and
+                                    order.order_status == 'ACCEPTED' %}
+                                    <a href="{{ url_for('payment.pay', order_id=order.id) }}" class="pay-now-btn">
+                                        <i class="fas fa-credit-card"></i> Pay Now
+                                    </a>
+                                    {% elif order.payment_status == 'SUCCESS' %}
+                                    <span style="color:var(--accent2); font-weight:600; font-size:.88rem;">
+                                        <i class="fas fa-check-circle"></i> Paid
+                                    </span>
+                                    {% elif order.payment_method == 'COD' %}
+                                    <span class="payment-status payment-pending">COD Pending</span>
+                                    {% else %}
+                                    <span class="payment-status payment-pending">{{ order.payment_status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- MOBILE CARDS -->
+                <div class="mobile-order-list">
+                    {% for order in orders %}
+                    <div class="order-card">
+                        <div class="order-card-header">
+                            <span class="tracking-id" style="font-size:.75rem; padding:.3rem .65rem;">
+                                <i class="fas fa-hashtag"></i>{{ order.tracking_id }}
+                            </span>
+                            <span class="status-badge status-{{ order.order_status|lower }}">{{ order.order_status
+                                }}</span>
+                        </div>
+
+                        <div class="order-card-body">
+                            <div class="order-card-field">
+                                <span class="order-card-label">Amount</span>
+                                <span class="order-card-value">
+                                    {% if order.medicine_total > 0 %}
+                                    ₹{{ "%.2f"|format(order.total_amount) }}
+                                    {% else %}
+                                    <span class="status-badge status-pending"
+                                        style="font-size:.68rem; padding:.25rem .55rem;">Awaiting</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="order-card-field">
+                                <span class="order-card-label">Payment</span>
+                                <span class="order-card-value">
+                                    <span class="payment-status payment-{{ order.payment_status|lower }}"
+                                        style="font-size:.72rem; padding:.28rem .6rem;">
+                                        {{ order.payment_status }}
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="order-card-field">
+                                <span class="order-card-label">Method</span>
+                                <span class="order-card-value" style="font-size:.88rem;">{{ order.payment_method
+                                    }}</span>
+                            </div>
+                            <div class="order-card-field">
+                                <span class="order-card-label">Date</span>
+                                <span class="order-card-value"
+                                    style="font-size:.82rem; color:var(--text-muted); font-weight:500;">
+                                    {{ order.created_at.strftime("%b %d, %Y") }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="order-card-footer">
+                            {% if order.payment_method == "ONLINE" and order.payment_status == "PENDING" and
+                            order.order_status == 'ACCEPTED' %}
+                            <a href="{{ url_for('payment.pay', order_id=order.id) }}" class="pay-now-btn"
+                                style="font-size:.82rem; padding:.48rem .95rem;">
+                                <i class="fas fa-credit-card"></i> Pay Now
+                            </a>
+                            {% elif order.payment_status == 'SUCCESS' %}
+                            <span style="color:var(--accent2); font-weight:600; font-size:.85rem;">
+                                <i class="fas fa-check-circle"></i> Payment Done
+                            </span>
+                            {% elif order.payment_method == 'COD' %}
+                            <span class="payment-status payment-pending" style="font-size:.75rem;">COD Pending</span>
+                            {% else %}
+                            <span class="payment-status payment-pending" style="font-size:.75rem;">{{
+                                order.payment_status }}</span>
+                            {% endif %}
+
+                            {% if order.medicine_total > 0 and order.medicine_amount and order.delivery_charge %}
+                            <span class="breakdown-pill">
+                                💊 ₹{{ "%.0f"|format(order.medicine_amount) }} + 🚚 ₹{{
+                                "%.0f"|format(order.delivery_charge) }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <h3>No orders yet</h3>
+                    <p>Place your first medicine order</p>
+                    <a href="{{ url_for('user.new_order') }}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle"></i> Create First Order
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MOBILE BOTTOM NAV -->
+    <nav class="mobile-bottom-nav">
+        <button class="bnav-item active">
+            <i class="fas fa-home"></i>Home
+        </button>
+        <a href="{{ url_for('user.new_order') }}" class="bnav-item">
+            <i class="fas fa-plus-circle"></i>Order
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="bnav-item" style="color:#dc2626;">
+            <i class="fas fa-sign-out-alt"></i>Logout
+        </a>
+    </nav>
+
+</div><!-- /page-wrap -->
+
+<script>
+    const html = document.documentElement;
+    const label = document.getElementById('toggle-label');
+    const icon = document.getElementById('toggle-icon');
+
+    // Load saved theme
+    const saved = localStorage.getItem('theme') || 'light';
+    if (saved === 'dark') applyDark();
+
+    function toggleTheme() {
+        if (html.getAttribute('data-theme') === 'dark') {
+            applyLight();
+            localStorage.setItem('theme', 'light');
+        } else {
+            applyDark();
+            localStorage.setItem('theme', 'dark');
+        }
+    }
+
+    function applyDark() {
+        html.setAttribute('data-theme', 'dark');
+        if (label) label.textContent = 'Light Mode';
+        if (icon) { icon.className = 'fas fa-sun'; icon.style.color = '#f59e0b'; }
+    }
+
+    function applyLight() {
+        html.removeAttribute('data-theme');
+        if (label) label.textContent = 'Dark Mode';
+        if (icon) { icon.className = 'fas fa-moon'; icon.style.color = '#7a7f9a'; }
+    }
+</script>
+
+{% endblock %}

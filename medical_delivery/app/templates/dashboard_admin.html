@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Admin Dashboard</h2>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <h2 class="card-text">{{ total_users }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Total Stores</h5>
+                    <h2 class="card-text">{{ total_stores }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Total Orders</h5>
+                    <h2 class="card-text">{{ total_orders }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Total Revenue</h5>
+                    <h2 class="card-text">₹{{ "%.2f"|format(revenue) }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <hr>
+    
+    <h3 class="mb-3">All Orders</h3>
+    
+    {% if orders %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Tracking ID</th>
+                    <th>User</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Total (₹)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>
+                        <code>{{ order.tracking_id }}</code>
+                    </td>
+                    <td>{{ order.user.name if order.user else 'N/A' }}</td>
+                    <td>
+                        {% if order.order_status == 'PENDING' %}
+                            <span class="badge bg-warning">Pending</span>
+                        {% elif order.order_status == 'CONFIRMED' %}
+                            <span class="badge bg-info">Confirmed</span>
+                        {% elif order.order_status == 'DELIVERED' %}
+                            <span class="badge bg-success">Delivered</span>
+                        {% elif order.order_status == 'CANCELLED' %}
+                            <span class="badge bg-danger">Cancelled</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ order.order_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if order.payment_status == 'SUCCESS' %}
+                            <span class="badge bg-success">Paid</span>
+                        {% elif order.payment_status == 'PENDING' %}
+                            <span class="badge bg-warning">Pending</span>
+                        {% elif order.payment_status == 'FAILED' %}
+                            <span class="badge bg-danger">Failed</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ order.payment_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>₹{{ "%.2f"|format(order.total_amount) }}</td>
+                    <td>
+                        <a href="{{ url_for('admin.view_order', order_id=order.id) }}" class="btn btn-sm btn-primary">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No orders found.
+    </div>
+    {% endif %}
+    
+    <!-- Quick Actions -->
+    <div class="mt-4">
+        <a href="{{ url_for('admin.manage_users') }}" class="btn btn-outline-primary">Manage Users</a>
+        <a href="{{ url_for('admin.manage_stores') }}" class="btn btn-outline-success">Manage Stores</a>
+    </div>
+</div>
+
+{% endblock %}
